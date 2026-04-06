@@ -13,7 +13,7 @@ AP Statistics students often know the formulas but still struggle with procedure
 - Built-in checks and conditions for each supported method
 - Formula and setup reminders for full-credit written work
 - Computation of test statistics, p-values, critical values, and intervals
-- Identification of additional procedures that are not yet computed in version 1
+- Numerical t-model p-value approximation with calculator guidance for t-tests
 - Short conclusion templates written in context
 - Beginner-friendly Python with no external dependencies beyond `math`
 
@@ -25,15 +25,15 @@ Version 1 includes:
 - One-proportion z-interval
 - One-mean t-test
 - One-mean t-interval
-
-The decision tree also identifies these guide-only procedures:
-
 - Two-proportion z-test
 - Two-proportion z-interval
 - Two-sample t-test
 - Two-sample t-interval
 - Paired t-test
 - Paired t-interval
+
+The decision tree also distinguishes paired categorical data, which is not part
+of the current z/t procedure set in this project.
 
 For each procedure, the program provides:
 
@@ -125,13 +125,13 @@ The implementation is intentionally simple:
 - Functions are organized by procedure and task
 - Prompts stay short for future calculator adaptation
 - Numerical methods are implemented directly so the project stays self-contained
+- t-test p-values are approximated numerically and paired with calculator instructions
 
 ## Planned Improvements
 
-- Add computations for two-proportion procedures
-- Add computations for two-sample t-procedures
-- Add computations for paired t-procedures
 - Add a compact calculator-screen mode
+- Add direct raw-data entry for paired differences
+- Add support for more AP Statistics inference families
 - Add optional formula abbreviations for faster navigation
 - Expand the example problem set
 - Improve output formatting for study guides and screenshots

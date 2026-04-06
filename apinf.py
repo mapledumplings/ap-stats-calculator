@@ -118,7 +118,7 @@ PROCEDURES = {
         "goal": "test",
         "data_type": "proportion",
         "sample_type": "two",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment for each group",
             "Independent groups",
@@ -157,7 +157,7 @@ PROCEDURES = {
         "goal": "interval",
         "data_type": "proportion",
         "sample_type": "two",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment for each group",
             "Independent groups",
@@ -191,7 +191,7 @@ PROCEDURES = {
         "goal": "test",
         "data_type": "mean",
         "sample_type": "two",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment for each group",
             "Independent groups",
@@ -232,7 +232,7 @@ PROCEDURES = {
         "goal": "interval",
         "data_type": "mean",
         "sample_type": "two",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment for each group",
             "Independent groups",
@@ -269,7 +269,7 @@ PROCEDURES = {
         "goal": "test",
         "data_type": "mean",
         "sample_type": "paired",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -299,7 +299,7 @@ PROCEDURES = {
         "goal": "interval",
         "data_type": "mean",
         "sample_type": "paired",
-        "implemented": False,
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -490,6 +490,18 @@ def run_procedure_computation(procedure_id):
         run_one_mean_t_test()
     elif procedure_id == "one_mean_interval":
         run_one_mean_t_interval()
+    elif procedure_id == "two_prop_test":
+        run_two_proportion_z_test()
+    elif procedure_id == "two_prop_interval":
+        run_two_proportion_z_interval()
+    elif procedure_id == "two_mean_test":
+        run_two_sample_t_test()
+    elif procedure_id == "two_mean_interval":
+        run_two_sample_t_interval()
+    elif procedure_id == "paired_mean_test":
+        run_paired_t_test()
+    elif procedure_id == "paired_mean_interval":
+        run_paired_t_interval()
 
 
 def run_one_proportion_z_test():
@@ -705,6 +717,386 @@ def run_one_mean_t_interval():
     print()
 
 
+def run_two_proportion_z_test():
+    print("Two-Proportion z-Test")
+    print("---------------------")
+    group_1, group_2 = get_two_group_contexts()
+    successes_1, sample_size_1, successes_2, sample_size_2 = get_two_group_counts()
+    tail = get_tail()
+    alpha = get_probability("Alpha (ex: 0.05 or 5): ")
+    population_size_1 = get_optional_positive_int("Population size N1 (Enter if large/unk): ")
+    population_size_2 = get_optional_positive_int("Population size N2 (Enter if large/unk): ")
+
+    sample_proportion_1 = successes_1 / sample_size_1
+    sample_proportion_2 = successes_2 / sample_size_2
+    pooled_proportion = (successes_1 + successes_2) / (sample_size_1 + sample_size_2)
+    standard_error_null = math.sqrt(
+        pooled_proportion
+        * (1 - pooled_proportion)
+        * ((1 / sample_size_1) + (1 / sample_size_2))
+    )
+    z_statistic = (sample_proportion_1 - sample_proportion_2) / standard_error_null
+    p_value = tail_p_value(normal_cdf(z_statistic), tail)
+
+    print()
+    print("Checks")
+    print_checks(
+        get_two_proportion_test_checks(
+            sample_size_1,
+            sample_size_2,
+            pooled_proportion,
+            population_size_1,
+            population_size_2,
+        )
+    )
+    print()
+    print("Setup")
+    print(f"- Parameter: p1 - p2 = true proportion of {group_1} minus {group_2}")
+    print("- H0: p1 - p2 = 0")
+    print(f"- Ha: p1 - p2 {tail} 0")
+    print("- Normal approximation used for the z test.")
+    print()
+    print("Values")
+    print(f"- p-hat1 = {successes_1} / {sample_size_1} = {format_number(sample_proportion_1)}")
+    print(f"- p-hat2 = {successes_2} / {sample_size_2} = {format_number(sample_proportion_2)}")
+    print(
+        f"- p-hatc = ({successes_1} + {successes_2}) / "
+        f"({sample_size_1} + {sample_size_2}) = {format_number(pooled_proportion)}"
+    )
+    print(
+        f"- SE0 = sqrt(({format_number(pooled_proportion)})"
+        f"({format_number(1 - pooled_proportion)})"
+        f"(1/{sample_size_1} + 1/{sample_size_2})) = "
+        f"{format_number(standard_error_null)}"
+    )
+    print(
+        f"- z = ({format_number(sample_proportion_1)} - "
+        f"{format_number(sample_proportion_2)}) / "
+        f"{format_number(standard_error_null)} = {format_number(z_statistic)}"
+    )
+    print(f"- p-value = {format_number(p_value)}")
+    print()
+    print("Conclusion")
+    print(
+        test_conclusion(
+            p_value,
+            alpha,
+            "difference in proportions",
+            f"{group_1} minus {group_2}",
+            tail,
+            0.0,
+        )
+    )
+    print()
+
+
+def run_two_proportion_z_interval():
+    print("Two-Proportion z-Interval")
+    print("-------------------------")
+    group_1, group_2 = get_two_group_contexts()
+    successes_1, sample_size_1, successes_2, sample_size_2 = get_two_group_counts()
+    confidence_level = get_confidence_level()
+    population_size_1 = get_optional_positive_int("Population size N1 (Enter if large/unk): ")
+    population_size_2 = get_optional_positive_int("Population size N2 (Enter if large/unk): ")
+
+    sample_proportion_1 = successes_1 / sample_size_1
+    sample_proportion_2 = successes_2 / sample_size_2
+    difference = sample_proportion_1 - sample_proportion_2
+    z_critical = inverse_normal_cdf((1 + confidence_level) / 2)
+    standard_error = math.sqrt(
+        (sample_proportion_1 * (1 - sample_proportion_1) / sample_size_1)
+        + (sample_proportion_2 * (1 - sample_proportion_2) / sample_size_2)
+    )
+    margin_of_error = z_critical * standard_error
+    lower_bound = difference - margin_of_error
+    upper_bound = difference + margin_of_error
+
+    print()
+    print("Checks")
+    print_checks(
+        get_two_proportion_interval_checks(
+            sample_size_1,
+            sample_size_2,
+            sample_proportion_1,
+            sample_proportion_2,
+            population_size_1,
+            population_size_2,
+        )
+    )
+    print()
+    print("Setup")
+    print(f"- Parameter: p1 - p2 = true proportion of {group_1} minus {group_2}")
+    print("- CI: (p-hat1 - p-hat2) +/- z*SE")
+    print("- Normal approximation used for the z interval.")
+    print()
+    print("Values")
+    print(f"- p-hat1 = {successes_1} / {sample_size_1} = {format_number(sample_proportion_1)}")
+    print(f"- p-hat2 = {successes_2} / {sample_size_2} = {format_number(sample_proportion_2)}")
+    print(f"- p-hat1 - p-hat2 = {format_number(difference)}")
+    print(f"- z* = {format_number(z_critical)}")
+    print(
+        f"- SE = sqrt(({format_number(sample_proportion_1)})"
+        f"({format_number(1 - sample_proportion_1)})/{sample_size_1} + "
+        f"({format_number(sample_proportion_2)})"
+        f"({format_number(1 - sample_proportion_2)})/{sample_size_2}) = "
+        f"{format_number(standard_error)}"
+    )
+    print(
+        f"- ME = {format_number(z_critical)} * {format_number(standard_error)} = "
+        f"{format_number(margin_of_error)}"
+    )
+    print(
+        f"- Interval = ({format_number(lower_bound)}, "
+        f"{format_number(upper_bound)})"
+    )
+    print()
+    print("Conclusion")
+    print(
+        f"We are {format_percent(confidence_level)} confident that p1 - p2, "
+        f"the true difference in proportions of {group_1} minus {group_2}, "
+        f"is between {format_number(lower_bound)} and {format_number(upper_bound)}."
+    )
+    print()
+
+
+def run_two_sample_t_test():
+    print("Two-Sample t-Test")
+    print("-----------------")
+    group_1, group_2 = get_two_group_contexts()
+    mean_1, sd_1, sample_size_1, mean_2, sd_2, sample_size_2 = get_two_sample_mean_inputs()
+    tail = get_tail()
+    alpha = get_probability("Alpha (ex: 0.05 or 5): ")
+    population_size_1 = get_optional_positive_int("Population size N1 (Enter if large/unk): ")
+    population_size_2 = get_optional_positive_int("Population size N2 (Enter if large/unk): ")
+    shape_1_ok = get_shape_check_with_label(sample_size_1, "Group 1")
+    shape_2_ok = get_shape_check_with_label(sample_size_2, "Group 2")
+
+    difference = mean_1 - mean_2
+    standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
+    t_statistic = difference / standard_error
+    degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
+    p_value = tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
+
+    print()
+    print("Checks")
+    print_checks(
+        get_two_mean_checks(
+            sample_size_1,
+            sample_size_2,
+            population_size_1,
+            population_size_2,
+            shape_1_ok,
+            shape_2_ok,
+        )
+    )
+    print()
+    print("Setup")
+    print(f"- Parameter: mu1 - mu2 = true mean of {group_1} minus {group_2}")
+    print("- H0: mu1 - mu2 = 0")
+    print(f"- Ha: mu1 - mu2 {tail} 0")
+    print()
+    print("Values")
+    print(f"- x1-bar = {format_number(mean_1)}")
+    print(f"- s1 = {format_number(sd_1)}")
+    print(f"- n1 = {sample_size_1}")
+    print(f"- x2-bar = {format_number(mean_2)}")
+    print(f"- s2 = {format_number(sd_2)}")
+    print(f"- n2 = {sample_size_2}")
+    print(f"- x1-bar - x2-bar = {format_number(difference)}")
+    print(
+        f"- SE = sqrt({format_number(sd_1 ** 2)}/{sample_size_1} + "
+        f"{format_number(sd_2 ** 2)}/{sample_size_2}) = "
+        f"{format_number(standard_error)}"
+    )
+    print(
+        f"- t = {format_number(difference)} / {format_number(standard_error)} = "
+        f"{format_number(t_statistic)}"
+    )
+    print(f"- df (Welch approx) = {format_number(degrees_freedom)}")
+    print_t_test_pvalue_details(p_value, t_statistic, degrees_freedom, tail, "2-SampTTest")
+    print("Conclusion")
+    print(
+        test_conclusion(
+            p_value,
+            alpha,
+            "difference in means",
+            f"{group_1} minus {group_2}",
+            tail,
+            0.0,
+        )
+    )
+    print()
+
+
+def run_two_sample_t_interval():
+    print("Two-Sample t-Interval")
+    print("---------------------")
+    group_1, group_2 = get_two_group_contexts()
+    mean_1, sd_1, sample_size_1, mean_2, sd_2, sample_size_2 = get_two_sample_mean_inputs()
+    confidence_level = get_confidence_level()
+    population_size_1 = get_optional_positive_int("Population size N1 (Enter if large/unk): ")
+    population_size_2 = get_optional_positive_int("Population size N2 (Enter if large/unk): ")
+    shape_1_ok = get_shape_check_with_label(sample_size_1, "Group 1")
+    shape_2_ok = get_shape_check_with_label(sample_size_2, "Group 2")
+
+    difference = mean_1 - mean_2
+    standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
+    degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
+    t_critical = inverse_t_cdf((1 + confidence_level) / 2, degrees_freedom)
+    margin_of_error = t_critical * standard_error
+    lower_bound = difference - margin_of_error
+    upper_bound = difference + margin_of_error
+
+    print()
+    print("Checks")
+    print_checks(
+        get_two_mean_checks(
+            sample_size_1,
+            sample_size_2,
+            population_size_1,
+            population_size_2,
+            shape_1_ok,
+            shape_2_ok,
+        )
+    )
+    print()
+    print("Setup")
+    print(f"- Parameter: mu1 - mu2 = true mean of {group_1} minus {group_2}")
+    print("- CI: (x1-bar - x2-bar) +/- t*SE")
+    print()
+    print("Values")
+    print(f"- x1-bar - x2-bar = {format_number(difference)}")
+    print(
+        f"- SE = sqrt({format_number(sd_1 ** 2)}/{sample_size_1} + "
+        f"{format_number(sd_2 ** 2)}/{sample_size_2}) = "
+        f"{format_number(standard_error)}"
+    )
+    print(f"- df (Welch approx) = {format_number(degrees_freedom)}")
+    print(f"- t* = {format_number(t_critical)}")
+    print(
+        f"- ME = {format_number(t_critical)} * {format_number(standard_error)} = "
+        f"{format_number(margin_of_error)}"
+    )
+    print(
+        f"- Interval = ({format_number(lower_bound)}, "
+        f"{format_number(upper_bound)})"
+    )
+    print()
+    print("Conclusion")
+    print(
+        f"We are {format_percent(confidence_level)} confident that mu1 - mu2, "
+        f"the true difference in means of {group_1} minus {group_2}, "
+        f"is between {format_number(lower_bound)} and {format_number(upper_bound)}."
+    )
+    print()
+
+
+def run_paired_t_test():
+    print("Paired t-Test")
+    print("-------------")
+    difference_context = get_context_with_prompt("Difference context: ")
+    mean_difference = get_float("Mean diff d-bar: ")
+    sd_difference = get_positive_float("SD of diffs s_d: ")
+    sample_size = get_sample_size_for_t("Pairs n: ")
+    tail = get_tail()
+    alpha = get_probability("Alpha (ex: 0.05 or 5): ")
+    population_size = get_optional_positive_int("Population size N (Enter if large/unk): ")
+    shape_is_ok = get_shape_check(sample_size)
+
+    degrees_freedom = sample_size - 1
+    standard_error = sd_difference / math.sqrt(sample_size)
+    t_statistic = mean_difference / standard_error
+    p_value = tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
+
+    print()
+    print("Checks")
+    print_checks(get_paired_mean_checks(sample_size, population_size, shape_is_ok))
+    print()
+    print("Setup")
+    print(f"- Parameter: mu_d = true mean difference for {difference_context}")
+    print("- H0: mu_d = 0")
+    print(f"- Ha: mu_d {tail} 0")
+    print()
+    print("Values")
+    print(f"- d-bar = {format_number(mean_difference)}")
+    print(f"- s_d = {format_number(sd_difference)}")
+    print(
+        f"- SE = {format_number(sd_difference)} / sqrt({sample_size}) = "
+        f"{format_number(standard_error)}"
+    )
+    print(
+        f"- t = {format_number(mean_difference)} / {format_number(standard_error)} = "
+        f"{format_number(t_statistic)}"
+    )
+    print(f"- df = {degrees_freedom}")
+    print_t_test_pvalue_details(p_value, t_statistic, degrees_freedom, tail, "T-Test")
+    print("Conclusion")
+    print(
+        test_conclusion(
+            p_value,
+            alpha,
+            "mean difference",
+            difference_context,
+            tail,
+            0.0,
+        )
+    )
+    print()
+
+
+def run_paired_t_interval():
+    print("Paired t-Interval")
+    print("-----------------")
+    difference_context = get_context_with_prompt("Difference context: ")
+    mean_difference = get_float("Mean diff d-bar: ")
+    sd_difference = get_positive_float("SD of diffs s_d: ")
+    sample_size = get_sample_size_for_t("Pairs n: ")
+    confidence_level = get_confidence_level()
+    population_size = get_optional_positive_int("Population size N (Enter if large/unk): ")
+    shape_is_ok = get_shape_check(sample_size)
+
+    degrees_freedom = sample_size - 1
+    standard_error = sd_difference / math.sqrt(sample_size)
+    t_critical = inverse_t_cdf((1 + confidence_level) / 2, degrees_freedom)
+    margin_of_error = t_critical * standard_error
+    lower_bound = mean_difference - margin_of_error
+    upper_bound = mean_difference + margin_of_error
+
+    print()
+    print("Checks")
+    print_checks(get_paired_mean_checks(sample_size, population_size, shape_is_ok))
+    print()
+    print("Setup")
+    print(f"- Parameter: mu_d = true mean difference for {difference_context}")
+    print("- CI: d-bar +/- t*SE")
+    print()
+    print("Values")
+    print(f"- d-bar = {format_number(mean_difference)}")
+    print(f"- s_d = {format_number(sd_difference)}")
+    print(
+        f"- SE = {format_number(sd_difference)} / sqrt({sample_size}) = "
+        f"{format_number(standard_error)}"
+    )
+    print(f"- df = {degrees_freedom}")
+    print(f"- t* = {format_number(t_critical)}")
+    print(
+        f"- ME = {format_number(t_critical)} * {format_number(standard_error)} = "
+        f"{format_number(margin_of_error)}"
+    )
+    print(
+        f"- Interval = ({format_number(lower_bound)}, "
+        f"{format_number(upper_bound)})"
+    )
+    print()
+    print("Conclusion")
+    print(
+        f"We are {format_percent(confidence_level)} confident that mu_d, the "
+        f"true mean difference for {difference_context}, is between "
+        f"{format_number(lower_bound)} and {format_number(upper_bound)}."
+    )
+    print()
+
+
 def get_one_proportion_test_checks(sample_size, null_proportion, population_size):
     checks = [("Random", "Ask if the sample/treatment was random.")]
     if population_size:
@@ -751,6 +1143,92 @@ def get_one_mean_checks(sample_size, population_size, shape_is_ok):
     return checks
 
 
+def get_two_proportion_test_checks(
+    sample_size_1,
+    sample_size_2,
+    pooled_proportion,
+    population_size_1,
+    population_size_2,
+):
+    checks = [("Random", "Ask if both groups were sampled/assigned randomly.")]
+    checks.append(("Independent", "Groups should be independent."))
+    checks.extend(get_two_sample_ten_percent_checks(population_size_1, population_size_2, sample_size_1, sample_size_2))
+    large_counts_pass = (
+        sample_size_1 * pooled_proportion >= 10
+        and sample_size_1 * (1 - pooled_proportion) >= 10
+        and sample_size_2 * pooled_proportion >= 10
+        and sample_size_2 * (1 - pooled_proportion) >= 10
+    )
+    checks.append(("Large counts", pass_fail_text(large_counts_pass)))
+    return checks
+
+
+def get_two_proportion_interval_checks(
+    sample_size_1,
+    sample_size_2,
+    sample_proportion_1,
+    sample_proportion_2,
+    population_size_1,
+    population_size_2,
+):
+    checks = [("Random", "Ask if both groups were sampled/assigned randomly.")]
+    checks.append(("Independent", "Groups should be independent."))
+    checks.extend(get_two_sample_ten_percent_checks(population_size_1, population_size_2, sample_size_1, sample_size_2))
+    large_counts_pass = (
+        sample_size_1 * sample_proportion_1 >= 10
+        and sample_size_1 * (1 - sample_proportion_1) >= 10
+        and sample_size_2 * sample_proportion_2 >= 10
+        and sample_size_2 * (1 - sample_proportion_2) >= 10
+    )
+    checks.append(("Large counts", pass_fail_text(large_counts_pass)))
+    return checks
+
+
+def get_two_mean_checks(
+    sample_size_1,
+    sample_size_2,
+    population_size_1,
+    population_size_2,
+    shape_1_ok,
+    shape_2_ok,
+):
+    checks = [("Random", "Ask if both groups were sampled/assigned randomly.")]
+    checks.append(("Independent", "Groups should be independent."))
+    checks.extend(get_two_sample_ten_percent_checks(population_size_1, population_size_2, sample_size_1, sample_size_2))
+    checks.append(("Normal/Large G1", pass_fail_text(sample_size_1 >= 30 or shape_1_ok)))
+    checks.append(("Normal/Large G2", pass_fail_text(sample_size_2 >= 30 or shape_2_ok)))
+    return checks
+
+
+def get_paired_mean_checks(sample_size, population_size, shape_is_ok):
+    checks = [("Random", "Ask if the sample/treatment was random.")]
+    if population_size:
+        checks.append(("10%", pass_fail_text(sample_size <= 0.10 * population_size)))
+    else:
+        checks.append(("10%", "Need N if sampling w/o replacement."))
+    checks.append(("Paired data", "Use differences from matched pairs."))
+    checks.append(("Normal/Large", pass_fail_text(sample_size >= 30 or shape_is_ok)))
+    return checks
+
+
+def get_two_sample_ten_percent_checks(
+    population_size_1,
+    population_size_2,
+    sample_size_1,
+    sample_size_2,
+):
+    checks = []
+    if population_size_1:
+        checks.append(("10% G1", pass_fail_text(sample_size_1 <= 0.10 * population_size_1)))
+    else:
+        checks.append(("10% G1", "Need N1 if sampling w/o replacement."))
+    if population_size_2:
+        checks.append(("10% G2", pass_fail_text(sample_size_2 <= 0.10 * population_size_2)))
+    else:
+        checks.append(("10% G2", "Need N2 if sampling w/o replacement."))
+    return checks
+
+
 def print_checks(checks):
     for check_name, result in checks:
         print(f"- {check_name}: {result}")
@@ -784,6 +1262,19 @@ def get_context():
     return "the population of interest"
 
 
+def get_context_with_prompt(prompt):
+    text = input(prompt).strip()
+    if text:
+        return text
+    return "the population of interest"
+
+
+def get_two_group_contexts():
+    group_1 = get_context_with_prompt("Group 1 context: ")
+    group_2 = get_context_with_prompt("Group 2 context: ")
+    return group_1, group_2
+
+
 def get_successes_and_sample_size():
     successes = get_nonnegative_int("Successes x: ")
     sample_size = get_positive_int("Sample size n: ")
@@ -792,6 +1283,34 @@ def get_successes_and_sample_size():
         successes = get_nonnegative_int("Successes x: ")
         sample_size = get_positive_int("Sample size n: ")
     return successes, sample_size
+
+
+def get_two_group_counts():
+    successes_1 = get_nonnegative_int("Group 1 successes x1: ")
+    sample_size_1 = get_positive_int("Group 1 size n1: ")
+    while successes_1 > sample_size_1:
+        print("x1 cannot be larger than n1.")
+        successes_1 = get_nonnegative_int("Group 1 successes x1: ")
+        sample_size_1 = get_positive_int("Group 1 size n1: ")
+
+    successes_2 = get_nonnegative_int("Group 2 successes x2: ")
+    sample_size_2 = get_positive_int("Group 2 size n2: ")
+    while successes_2 > sample_size_2:
+        print("x2 cannot be larger than n2.")
+        successes_2 = get_nonnegative_int("Group 2 successes x2: ")
+        sample_size_2 = get_positive_int("Group 2 size n2: ")
+
+    return successes_1, sample_size_1, successes_2, sample_size_2
+
+
+def get_two_sample_mean_inputs():
+    mean_1 = get_float("Group 1 mean x1-bar: ")
+    sd_1 = get_positive_float("Group 1 SD s1: ")
+    sample_size_1 = get_sample_size_for_t("Group 1 size n1: ")
+    mean_2 = get_float("Group 2 mean x2-bar: ")
+    sd_2 = get_positive_float("Group 2 SD s2: ")
+    sample_size_2 = get_sample_size_for_t("Group 2 size n2: ")
+    return mean_1, sd_1, sample_size_1, mean_2, sd_2, sample_size_2
 
 
 def get_tail():
@@ -817,6 +1336,13 @@ def get_shape_check(sample_size):
         print("n >= 30, so the large sample check is met.")
         return True
     return ask_yes_no("Normal shape/no strong outliers? (y/n): ")
+
+
+def get_shape_check_with_label(sample_size, label):
+    if sample_size >= 30:
+        print(f"{label}: n >= 30, so the large sample check is met.")
+        return True
+    return ask_yes_no(f"{label} Normal shape/no strong outliers? (y/n): ")
 
 
 def get_positive_int(prompt):
@@ -862,6 +1388,14 @@ def get_positive_float(prompt):
         print("Enter a positive number.")
 
 
+def get_sample_size_for_t(prompt):
+    while True:
+        value = get_positive_int(prompt)
+        if value >= 2:
+            return value
+        print("Enter a whole number at least 2.")
+
+
 def get_probability(prompt):
     while True:
         value = get_float(prompt)
@@ -894,6 +1428,22 @@ def ask_yes_no(prompt):
 
 def pass_fail_text(passed):
     return "Pass." if passed else "Fail or check again."
+
+
+def print_t_test_pvalue_details(
+    p_value,
+    t_statistic,
+    degrees_freedom,
+    tail,
+    calculator_test_name,
+):
+    print(f"- p-value (numerical t approx) = {format_number(p_value)}")
+    print("- Exact t-model p-values are not built in to plain math code.")
+    print(
+        f"- Calculator: use {calculator_test_name} or tcdf with "
+        f"t = {format_number(t_statistic)} and df ~= {format_number(degrees_freedom)}."
+    )
+    print(f"- tcdf form: {tcdf_instruction(t_statistic, degrees_freedom, tail)}")
 
 
 def normal_cdf(z_value):
@@ -967,6 +1517,14 @@ def t_density(x_value, degrees_freedom):
     ) ** exponent
 
 
+def welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2):
+    part_1 = (sd_1 ** 2) / sample_size_1
+    part_2 = (sd_2 ** 2) / sample_size_2
+    numerator = (part_1 + part_2) ** 2
+    denominator = ((part_1 ** 2) / (sample_size_1 - 1)) + ((part_2 ** 2) / (sample_size_2 - 1))
+    return numerator / denominator
+
+
 def tail_p_value(cumulative_probability, tail):
     if tail == ">":
         return 1 - cumulative_probability
@@ -981,6 +1539,16 @@ def format_number(value):
 
 def format_percent(value):
     return f"{value * 100:.1f}%"
+
+
+def tcdf_instruction(t_statistic, degrees_freedom, tail):
+    t_text = format_number(t_statistic)
+    df_text = format_number(degrees_freedom)
+    if tail == ">":
+        return f"tcdf({t_text}, 1E99, {df_text})"
+    if tail == "<":
+        return f"tcdf(-1E99, {t_text}, {df_text})"
+    return f"2*tcdf(abs({t_text}), 1E99, {df_text})"
 
 
 if __name__ == "__main__":
