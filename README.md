@@ -13,6 +13,7 @@ AP Statistics students often know the formulas but still struggle with procedure
 - Built-in checks and conditions for each supported method
 - Formula and setup reminders for full-credit written work
 - Computation of test statistics, p-values, critical values, and intervals
+- Normal-model p-values for z-tests using the standard library
 - Numerical t-model p-value approximation with calculator guidance for t-tests
 - Short conclusion templates written in context
 - Beginner-friendly Python with no external dependencies beyond `math`
@@ -125,6 +126,7 @@ The implementation is intentionally simple:
 - Functions are organized by procedure and task
 - Prompts stay short for future calculator adaptation
 - Numerical methods are implemented directly so the project stays self-contained
+- z-test p-values are computed with the normal model
 - t-test p-values are approximated numerically and paired with calculator instructions
 
 ## Planned Improvements

@@ -521,8 +521,7 @@ def run_one_proportion_z_test():
         null_proportion * (1 - null_proportion) / sample_size
     )
     z_statistic = (sample_proportion - null_proportion) / standard_error_null
-    cumulative_probability = normal_cdf(z_statistic)
-    p_value = tail_p_value(cumulative_probability, tail)
+    p_value = compute_z_test_p_value(z_statistic, tail)
 
     print()
     print("Checks")
@@ -550,7 +549,8 @@ def run_one_proportion_z_test():
         f"{format_number(null_proportion)}) / "
         f"{format_number(standard_error_null)} = {format_number(z_statistic)}"
     )
-    print(f"- p-value = {format_number(p_value)}")
+    print(f"- Alt direction = {tail}")
+    print(f"- p-value (normal model) = {format_number(p_value)}")
     print()
     print("Conclusion")
     print(test_conclusion(p_value, alpha, "proportion", context, tail, null_proportion))
@@ -635,8 +635,8 @@ def run_one_mean_t_test():
     degrees_freedom = sample_size - 1
     standard_error = sample_sd / math.sqrt(sample_size)
     t_statistic = (sample_mean - null_mean) / standard_error
-    cumulative_probability = t_cdf(t_statistic, degrees_freedom)
-    p_value = tail_p_value(cumulative_probability, tail)
+    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
+    p_value = p_value_info["p_value"]
 
     print()
     print("Checks")
@@ -657,7 +657,8 @@ def run_one_mean_t_test():
         f"{format_number(standard_error)} = {format_number(t_statistic)}"
     )
     print(f"- df = {degrees_freedom}")
-    print(f"- p-value = {format_number(p_value)}")
+    print(f"- Alt direction = {tail}")
+    print_t_test_pvalue_details(p_value_info, "T-Test")
     print()
     print("Conclusion")
     print(test_conclusion(p_value, alpha, "mean", context, tail, null_mean))
@@ -736,7 +737,7 @@ def run_two_proportion_z_test():
         * ((1 / sample_size_1) + (1 / sample_size_2))
     )
     z_statistic = (sample_proportion_1 - sample_proportion_2) / standard_error_null
-    p_value = tail_p_value(normal_cdf(z_statistic), tail)
+    p_value = compute_z_test_p_value(z_statistic, tail)
 
     print()
     print("Checks")
@@ -774,7 +775,8 @@ def run_two_proportion_z_test():
         f"{format_number(sample_proportion_2)}) / "
         f"{format_number(standard_error_null)} = {format_number(z_statistic)}"
     )
-    print(f"- p-value = {format_number(p_value)}")
+    print(f"- Alt direction = {tail}")
+    print(f"- p-value (normal model) = {format_number(p_value)}")
     print()
     print("Conclusion")
     print(
@@ -875,7 +877,8 @@ def run_two_sample_t_test():
     standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
     t_statistic = difference / standard_error
     degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
-    p_value = tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
+    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
+    p_value = p_value_info["p_value"]
 
     print()
     print("Checks")
@@ -913,7 +916,8 @@ def run_two_sample_t_test():
         f"{format_number(t_statistic)}"
     )
     print(f"- df (Welch approx) = {format_number(degrees_freedom)}")
-    print_t_test_pvalue_details(p_value, t_statistic, degrees_freedom, tail, "2-SampTTest")
+    print(f"- Alt direction = {tail}")
+    print_t_test_pvalue_details(p_value_info, "2-SampTTest")
     print("Conclusion")
     print(
         test_conclusion(
@@ -1006,7 +1010,8 @@ def run_paired_t_test():
     degrees_freedom = sample_size - 1
     standard_error = sd_difference / math.sqrt(sample_size)
     t_statistic = mean_difference / standard_error
-    p_value = tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
+    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
+    p_value = p_value_info["p_value"]
 
     print()
     print("Checks")
@@ -1029,7 +1034,8 @@ def run_paired_t_test():
         f"{format_number(t_statistic)}"
     )
     print(f"- df = {degrees_freedom}")
-    print_t_test_pvalue_details(p_value, t_statistic, degrees_freedom, tail, "T-Test")
+    print(f"- Alt direction = {tail}")
+    print_t_test_pvalue_details(p_value_info, "T-Test")
     print("Conclusion")
     print(
         test_conclusion(
@@ -1430,20 +1436,44 @@ def pass_fail_text(passed):
     return "Pass." if passed else "Fail or check again."
 
 
-def print_t_test_pvalue_details(
-    p_value,
-    t_statistic,
-    degrees_freedom,
-    tail,
-    calculator_test_name,
-):
-    print(f"- p-value (numerical t approx) = {format_number(p_value)}")
-    print("- Exact t-model p-values are not built in to plain math code.")
+def compute_z_test_p_value(z_statistic, tail):
+    return tail_p_value(normal_cdf(z_statistic), tail)
+
+
+def compute_t_test_p_value_info(t_statistic, degrees_freedom, tail):
+    return {
+        "p_value": approximate_t_test_p_value(t_statistic, degrees_freedom, tail),
+        "test_statistic": t_statistic,
+        "degrees_freedom": degrees_freedom,
+        "tail": tail,
+        "label": "numerical t approx",
+        "note": (
+            "Exact t-model p-values are not available from the standard "
+            "library alone here, so this uses numerical integration. "
+            "The code is separated so an exact t routine could be added later."
+        ),
+    }
+
+
+def approximate_t_test_p_value(t_statistic, degrees_freedom, tail):
+    return tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
+
+
+def print_t_test_pvalue_details(p_value_info, calculator_test_name):
+    print(
+        f"- p-value ({p_value_info['label']}) = "
+        f"{format_number(p_value_info['p_value'])}"
+    )
+    print(f"- {p_value_info['note']}")
     print(
         f"- Calculator: use {calculator_test_name} or tcdf with "
-        f"t = {format_number(t_statistic)} and df ~= {format_number(degrees_freedom)}."
+        f"t = {format_number(p_value_info['test_statistic'])} and "
+        f"df ~= {format_number(p_value_info['degrees_freedom'])}."
     )
-    print(f"- tcdf form: {tcdf_instruction(t_statistic, degrees_freedom, tail)}")
+    print(
+        f"- tcdf form: "
+        f"{tcdf_instruction(p_value_info['test_statistic'], p_value_info['degrees_freedom'], p_value_info['tail'])}"
+    )
 
 
 def normal_cdf(z_value):
