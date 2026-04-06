@@ -1,6 +1,6 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a small command-line Python project that supports common one-sample AP Statistics inference procedures. It is designed to help students choose the correct method, review the required conditions, and complete the setup, calculations, and conclusion expected on free-response work.
+`ap-stats-calculator` is a small command-line Python project that supports common AP Statistics inference procedures. It is designed to help students choose the correct method, review the required conditions, and complete the setup, calculations, and conclusion expected on free-response work.
 
 ## Why This Project Matters
 
@@ -9,10 +9,11 @@ AP Statistics students often know the formulas but still struggle with procedure
 ## Features
 
 - Menu-based command-line interface
-- Procedure chooser based on data type and goal
+- Three-step decision tree based on goal, data type, and sample structure
 - Built-in checks and conditions for each supported method
 - Formula and setup reminders for full-credit written work
 - Computation of test statistics, p-values, critical values, and intervals
+- Identification of additional procedures that are not yet computed in version 1
 - Short conclusion templates written in context
 - Beginner-friendly Python with no external dependencies beyond `math`
 
@@ -24,6 +25,15 @@ Version 1 includes:
 - One-proportion z-interval
 - One-mean t-test
 - One-mean t-interval
+
+The decision tree also identifies these guide-only procedures:
+
+- Two-proportion z-test
+- Two-proportion z-interval
+- Two-sample t-test
+- Two-sample t-interval
+- Paired t-test
+- Paired t-interval
 
 For each procedure, the program provides:
 
@@ -56,7 +66,7 @@ Example menu flow:
 =================================
 AP Stats Inference Helper
 =================================
-1) Choose procedure
+1) Decision tree
 2) One-prop z-test
 3) One-prop z-int
 4) One-mean t-test
@@ -64,14 +74,20 @@ AP Stats Inference Helper
 6) Exit
 Choice: 1
 
+Goal?
+1) Confidence interval
+2) Hypothesis test
+Choice: 2
+
 Data type?
-1) Proportion
-2) Mean
+1) Categorical / proportion
+2) Quantitative / mean
 Choice: 1
 
-Goal?
-1) Test a claim
-2) Build an interval
+Sample structure?
+1) One sample
+2) Two independent samples
+3) Paired data
 Choice: 1
 
 Use: One-Proportion z-Test
@@ -112,8 +128,9 @@ The implementation is intentionally simple:
 
 ## Planned Improvements
 
-- Add two-sample inference procedures
-- Add paired t-procedures
+- Add computations for two-proportion procedures
+- Add computations for two-sample t-procedures
+- Add computations for paired t-procedures
 - Add a compact calculator-screen mode
 - Add optional formula abbreviations for faster navigation
 - Expand the example problem set
