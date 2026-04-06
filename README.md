@@ -1,184 +1,124 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a small command-line Python project for AP Statistics inference.
+`ap-stats-calculator` is a small command-line Python project that supports common one-sample AP Statistics inference procedures. It is designed to help students choose the correct method, review the required conditions, and complete the setup, calculations, and conclusion expected on free-response work.
 
-Version 1 supports:
+## Why This Project Matters
 
-- one-proportion z-test
-- one-proportion z-interval
-- one-mean t-test
-- one-mean t-interval
+AP Statistics students often know the formulas but still struggle with procedure selection, condition checks, and writing complete statistical conclusions. This project focuses on that full workflow, combining method selection with computation and short response templates in a format that can later be adapted for a TI-84 Python calculator.
 
-The program helps a student:
+## Features
 
-- choose the right one-sample inference procedure
-- see the checks/conditions to verify
-- see the formula/setup used for full credit
-- identify the values to calculate
-- compute the statistic, p-value, or interval
-- write a short conclusion in context
+- Menu-based command-line interface
+- Procedure chooser based on data type and goal
+- Built-in checks and conditions for each supported method
+- Formula and setup reminders for full-credit written work
+- Computation of test statistics, p-values, critical values, and intervals
+- Short conclusion templates written in context
+- Beginner-friendly Python with no external dependencies beyond `math`
 
-## Files
+## Current Procedures
 
-- `apinf.py` - main menu-based program
-- `examples/sample_problems.txt` - short practice prompts
+Version 1 includes:
+
+- One-proportion z-test
+- One-proportion z-interval
+- One-mean t-test
+- One-mean t-interval
+
+For each procedure, the program provides:
+
+- Method name
+- Conditions and checks
+- Formula/setup
+- Required input values
+- Computed values
+- Conclusion template
+
+## Project Structure
+
+- `apinf.py` - main application
+- `examples/sample_problems.txt` - sample AP Statistics-style prompts
 - `README.md` - project overview and usage
 
-## Why this version is simple
+## How to Run
 
-The code is intentionally beginner-friendly:
-
-- only uses the `math` module
-- uses plain functions instead of classes
-- keeps prompts short
-- keeps logic grouped by procedure
-- is written so it could later be adapted to a TI-84 Python calculator
-
-## How to run
-
-Make sure Python 3 is installed, then run:
+Use Python 3 and run:
 
 ```bash
 python apinf.py
 ```
 
-## Main menu
+## Example Usage
 
-When the program starts, you can:
+Example menu flow:
 
-1. choose a procedure from a short decision menu
-2. open a specific procedure directly
-3. compute values for that procedure
-4. exit
+```text
+=================================
+AP Stats Inference Helper
+=================================
+1) Choose procedure
+2) One-prop z-test
+3) One-prop z-int
+4) One-mean t-test
+5) One-mean t-int
+6) Exit
+Choice: 1
 
-## What each procedure includes
+Data type?
+1) Proportion
+2) Mean
+Choice: 1
 
-Each implemented procedure shows:
+Goal?
+1) Test a claim
+2) Build an interval
+Choice: 1
 
-- method name
-- required checks/conditions
-- formula/setup
-- needed input values
-- computed values
-- conclusion template
+Use: One-Proportion z-Test
+```
 
-## Supported computations
+Example run for a one-proportion z-test:
 
-### One-proportion z-test
+```text
+Context: students who get at least 8 hours of sleep
+Successes x: 102
+Sample size n: 150
+Null proportion p0: 0.60
+Alt hypothesis?
+1) >
+2) <
+3) !=
+Choice: 3
 
-Inputs:
+Alpha (ex: 0.05 or 5): 0.05
 
-- context
-- number of successes `x`
-- sample size `n`
-- null proportion `p0`
-- alternative hypothesis direction
-- significance level `alpha`
+Values
+- p-hat = 102 / 150 = 0.6800
+- SE0 = sqrt((0.6000)(0.4000) / 150) = 0.0400
+- z = (0.6800 - 0.6000) / 0.0400 = 2.0000
+- p-value = 0.0455
+```
 
-Outputs:
+Additional practice prompts are available in `examples/sample_problems.txt`.
 
-- sample proportion `p-hat`
-- standard error under `H0`
-- z statistic
-- p-value
-- contextual conclusion
+## Design Notes
 
-### One-proportion z-interval
+The implementation is intentionally simple:
 
-Inputs:
+- Only the standard `math` module is used
+- Functions are organized by procedure and task
+- Prompts stay short for future calculator adaptation
+- Numerical methods are implemented directly so the project stays self-contained
 
-- context
-- number of successes `x`
-- sample size `n`
-- confidence level
+## Planned Improvements
 
-Outputs:
-
-- sample proportion `p-hat`
-- critical value `z*`
-- standard error
-- margin of error
-- confidence interval
-- contextual conclusion
-
-### One-mean t-test
-
-Inputs:
-
-- context
-- sample mean `x-bar`
-- sample standard deviation `s`
-- sample size `n`
-- null mean `mu0`
-- alternative hypothesis direction
-- significance level `alpha`
-
-Outputs:
-
-- standard error
-- t statistic
-- degrees of freedom
-- p-value
-- contextual conclusion
-
-### One-mean t-interval
-
-Inputs:
-
-- context
-- sample mean `x-bar`
-- sample standard deviation `s`
-- sample size `n`
-- confidence level
-
-Outputs:
-
-- standard error
-- critical value `t*`
-- margin of error
-- confidence interval
-- degrees of freedom
-- contextual conclusion
-
-## Notes on conditions
-
-The program lists the AP Stats checks you should discuss, including:
-
-- randomization
-- the 10% condition
-- large counts for proportion procedures
-- Normal/large sample conditions for mean procedures
-
-Some of these checks still depend on the problem context. For example, the program can remind you to check whether a sample was random, but it cannot decide that from numbers alone.
-
-## Example workflow
-
-1. Run `python apinf.py`
-2. Pick `1` to choose a procedure
-3. Pick `Proportion` or `Mean`
-4. Pick `Test` or `Interval`
-5. Read the displayed checks and formula
-6. Choose to compute
-7. Enter the sample values
-8. Use the printed conclusion as a model for your write-up
-
-## Porting ideas for a calculator later
-
-This project was written with future TI-84 adaptation in mind:
-
-- short prompts
-- simple loops
-- no external packages
-- clear procedure-specific functions
-- limited formatting
-
-Possible later changes:
-
-- replace long text blocks with abbreviated screens
-- split computations into smaller calculator-friendly functions
-- store common prompts in shorter labels
-- add a numeric menu for tails and confidence levels
+- Add two-sample inference procedures
+- Add paired t-procedures
+- Add a compact calculator-screen mode
+- Add optional formula abbreviations for faster navigation
+- Expand the example problem set
+- Improve output formatting for study guides and screenshots
 
 ## License
 
-This repository includes an MIT License in `LICENSE`.
+This project is released under the MIT License. See `LICENSE` for details.
