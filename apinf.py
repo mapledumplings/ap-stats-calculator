@@ -1,16 +1,20 @@
 """AP Statistics inference helper.
 
-This command-line program helps students choose a one-sample inference
-procedure, review the required checks and formulas, and compute the key values
-for supported AP Statistics methods.
+This command-line program helps students choose a one-sample or two-sample
+inference procedure, review the required checks and formulas, and compute the
+key values for the procedures implemented in version 1.
 """
 
 import math
 
 
 PROCEDURES = {
-    "1": {
+    "one_prop_test": {
         "name": "One-Proportion z-Test",
+        "goal": "test",
+        "data_type": "proportion",
+        "sample_type": "one",
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -27,13 +31,17 @@ PROCEDURES = {
         "required_values": ["x", "n", "p0", "tail", "alpha", "context"],
         "computed_values": ["p-hat", "SE0", "z", "p-value"],
         "conclusion_template": (
-            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail "
-            "to reject] H0. There is [convincing or not convincing] evidence "
+            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail to "
+            "reject] H0. There is [convincing or not convincing] evidence "
             "that the true proportion of [context] is [relation to p0]."
         ),
     },
-    "2": {
+    "one_prop_interval": {
         "name": "One-Proportion z-Interval",
+        "goal": "interval",
+        "data_type": "proportion",
+        "sample_type": "one",
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -52,8 +60,12 @@ PROCEDURES = {
             "between ___ and ___."
         ),
     },
-    "3": {
+    "one_mean_test": {
         "name": "One-Mean t-Test",
+        "goal": "test",
+        "data_type": "mean",
+        "sample_type": "one",
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -71,13 +83,17 @@ PROCEDURES = {
         "required_values": ["x-bar", "s", "n", "mu0", "tail", "alpha", "context"],
         "computed_values": ["SE", "t", "df", "p-value"],
         "conclusion_template": (
-            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail "
-            "to reject] H0. There is [convincing or not convincing] evidence "
+            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail to "
+            "reject] H0. There is [convincing or not convincing] evidence "
             "that the true mean of [context] is [relation to mu0]."
         ),
     },
-    "4": {
+    "one_mean_interval": {
         "name": "One-Mean t-Interval",
+        "goal": "interval",
+        "data_type": "mean",
+        "sample_type": "one",
+        "implemented": True,
         "checks": [
             "Random sample or random assignment",
             "10% condition if sampling w/o replacement",
@@ -93,17 +109,224 @@ PROCEDURES = {
         "required_values": ["x-bar", "s", "n", "confidence level", "context"],
         "computed_values": ["SE", "t*", "ME", "interval"],
         "conclusion_template": (
-            "We are ___% confident that the true mean of [context] is "
+            "We are ___% confident that the true mean of [context] is between "
+            "___ and ___."
+        ),
+    },
+    "two_prop_test": {
+        "name": "Two-Proportion z-Test",
+        "goal": "test",
+        "data_type": "proportion",
+        "sample_type": "two",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment for each group",
+            "Independent groups",
+            "10% condition for each sample if sampling w/o replacement",
+            "Large counts using pooled p-hat for both groups",
+        ],
+        "formula": [
+            "Parameter: p1 - p2 = true difference in proportions",
+            "H0: p1 - p2 = 0",
+            "Ha: p1 - p2 > 0, p1 - p2 < 0, or p1 - p2 != 0",
+            "p-hat1 = x1 / n1 and p-hat2 = x2 / n2",
+            "p-hatc = (x1 + x2) / (n1 + n2)",
+            "z = ((p-hat1 - p-hat2) - 0) / sqrt(p-hatc(1-p-hatc)(1/n1+1/n2))",
+            "p-value from the standard normal model",
+        ],
+        "required_values": [
+            "x1",
+            "n1",
+            "x2",
+            "n2",
+            "tail",
+            "alpha",
+            "group 1 context",
+            "group 2 context",
+        ],
+        "computed_values": ["p-hat1", "p-hat2", "p-hatc", "SE0", "z", "p-value"],
+        "conclusion_template": (
+            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail to "
+            "reject] H0. There is [convincing or not convincing] evidence "
+            "that the true difference in proportions of [group 1 context] and "
+            "[group 2 context] is [relation to 0]."
+        ),
+    },
+    "two_prop_interval": {
+        "name": "Two-Proportion z-Interval",
+        "goal": "interval",
+        "data_type": "proportion",
+        "sample_type": "two",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment for each group",
+            "Independent groups",
+            "10% condition for each sample if sampling w/o replacement",
+            "Large counts in each sample using p-hat1 and p-hat2",
+        ],
+        "formula": [
+            "Parameter: p1 - p2 = true difference in proportions",
+            "p-hat1 = x1 / n1 and p-hat2 = x2 / n2",
+            "SE = sqrt(p-hat1(1-p-hat1)/n1 + p-hat2(1-p-hat2)/n2)",
+            "CI: (p-hat1 - p-hat2) +/- z*SE",
+        ],
+        "required_values": [
+            "x1",
+            "n1",
+            "x2",
+            "n2",
+            "confidence level",
+            "group 1 context",
+            "group 2 context",
+        ],
+        "computed_values": ["p-hat1", "p-hat2", "z*", "SE", "ME", "interval"],
+        "conclusion_template": (
+            "We are ___% confident that p1 - p2, the true difference in "
+            "proportions of [group 1 context] minus [group 2 context], is "
             "between ___ and ___."
+        ),
+    },
+    "two_mean_test": {
+        "name": "Two-Sample t-Test",
+        "goal": "test",
+        "data_type": "mean",
+        "sample_type": "two",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment for each group",
+            "Independent groups",
+            "10% condition for each sample if sampling w/o replacement",
+            "Normal/large sample condition for both groups",
+            "No strong skew/outliers in either group for small samples",
+        ],
+        "formula": [
+            "Parameter: mu1 - mu2 = true difference in means",
+            "H0: mu1 - mu2 = 0",
+            "Ha: mu1 - mu2 > 0, mu1 - mu2 < 0, or mu1 - mu2 != 0",
+            "t = ((x1-bar - x2-bar) - 0) / sqrt(s1^2/n1 + s2^2/n2)",
+            "df from technology or conservative smaller df",
+            "p-value from the t model",
+        ],
+        "required_values": [
+            "x1-bar",
+            "s1",
+            "n1",
+            "x2-bar",
+            "s2",
+            "n2",
+            "tail",
+            "alpha",
+            "group 1 context",
+            "group 2 context",
+        ],
+        "computed_values": ["SE", "t", "df", "p-value"],
+        "conclusion_template": (
+            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail to "
+            "reject] H0. There is [convincing or not convincing] evidence "
+            "that the true difference in means of [group 1 context] and "
+            "[group 2 context] is [relation to 0]."
+        ),
+    },
+    "two_mean_interval": {
+        "name": "Two-Sample t-Interval",
+        "goal": "interval",
+        "data_type": "mean",
+        "sample_type": "two",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment for each group",
+            "Independent groups",
+            "10% condition for each sample if sampling w/o replacement",
+            "Normal/large sample condition for both groups",
+            "No strong skew/outliers in either group for small samples",
+        ],
+        "formula": [
+            "Parameter: mu1 - mu2 = true difference in means",
+            "SE = sqrt(s1^2/n1 + s2^2/n2)",
+            "df from technology or conservative smaller df",
+            "CI: (x1-bar - x2-bar) +/- t*SE",
+        ],
+        "required_values": [
+            "x1-bar",
+            "s1",
+            "n1",
+            "x2-bar",
+            "s2",
+            "n2",
+            "confidence level",
+            "group 1 context",
+            "group 2 context",
+        ],
+        "computed_values": ["SE", "t*", "ME", "interval", "df"],
+        "conclusion_template": (
+            "We are ___% confident that mu1 - mu2, the true difference in "
+            "means of [group 1 context] minus [group 2 context], is between "
+            "___ and ___."
+        ),
+    },
+    "paired_mean_test": {
+        "name": "Paired t-Test",
+        "goal": "test",
+        "data_type": "mean",
+        "sample_type": "paired",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment",
+            "10% condition if sampling w/o replacement",
+            "Analyze the differences d = value1 - value2",
+            "Normal/large sample condition for the differences",
+            "No strong skew/outliers in the differences for small n",
+        ],
+        "formula": [
+            "Parameter: mu_d = true mean difference",
+            "H0: mu_d = 0",
+            "Ha: mu_d > 0, mu_d < 0, or mu_d != 0",
+            "t = (d-bar - 0) / (s_d / sqrt(n))",
+            "df = n - 1",
+            "p-value from the t model",
+        ],
+        "required_values": ["d-bar", "s_d", "n", "tail", "alpha", "difference context"],
+        "computed_values": ["SE", "t", "df", "p-value"],
+        "conclusion_template": (
+            "Since p-value = ___ [< or >] alpha = ___, we [reject or fail to "
+            "reject] H0. There is [convincing or not convincing] evidence "
+            "that the true mean difference for [difference context] is "
+            "[relation to 0]."
+        ),
+    },
+    "paired_mean_interval": {
+        "name": "Paired t-Interval",
+        "goal": "interval",
+        "data_type": "mean",
+        "sample_type": "paired",
+        "implemented": False,
+        "checks": [
+            "Random sample or random assignment",
+            "10% condition if sampling w/o replacement",
+            "Analyze the differences d = value1 - value2",
+            "Normal/large sample condition for the differences",
+            "No strong skew/outliers in the differences for small n",
+        ],
+        "formula": [
+            "Parameter: mu_d = true mean difference",
+            "SE = s_d / sqrt(n)",
+            "df = n - 1",
+            "CI: d-bar +/- t*SE",
+        ],
+        "required_values": ["d-bar", "s_d", "n", "confidence level", "difference context"],
+        "computed_values": ["SE", "t*", "ME", "interval", "df"],
+        "conclusion_template": (
+            "We are ___% confident that mu_d, the true mean difference for "
+            "[difference context], is between ___ and ___."
         ),
     },
 }
 
-MAIN_MENU_TO_PROCEDURE = {
-    "2": "1",
-    "3": "2",
-    "4": "3",
-    "5": "4",
+DIRECT_MENU_TO_PROCEDURE = {
+    "2": "one_prop_test",
+    "3": "one_prop_interval",
+    "4": "one_mean_test",
+    "5": "one_mean_interval",
 }
 
 
@@ -111,7 +334,7 @@ def main():
     """Run the main menu loop."""
     while True:
         print_header()
-        print("1) Choose procedure")
+        print("1) Decision tree")
         print("2) One-prop z-test")
         print("3) One-prop z-int")
         print("4) One-mean t-test")
@@ -121,9 +344,9 @@ def main():
         print()
 
         if choice == "1":
-            choose_procedure()
-        elif choice in MAIN_MENU_TO_PROCEDURE:
-            show_procedure_menu(MAIN_MENU_TO_PROCEDURE[choice])
+            choose_by_decision_tree()
+        elif choice in DIRECT_MENU_TO_PROCEDURE:
+            open_procedure(DIRECT_MENU_TO_PROCEDURE[choice])
         elif choice == "6":
             print("Bye.")
             break
@@ -137,46 +360,100 @@ def print_header():
     print("=" * 33)
 
 
-def choose_procedure():
-    print("Data type?")
-    print("1) Proportion")
-    print("2) Mean")
-    data_choice = input("Choice: ").strip()
-    print()
-
-    print("Goal?")
-    print("1) Test a claim")
-    print("2) Build an interval")
-    goal_choice = input("Choice: ").strip()
-    print()
-
-    procedure_id = ""
-    if data_choice == "1" and goal_choice == "1":
-        procedure_id = "1"
-    elif data_choice == "1" and goal_choice == "2":
-        procedure_id = "2"
-    elif data_choice == "2" and goal_choice == "1":
-        procedure_id = "3"
-    elif data_choice == "2" and goal_choice == "2":
-        procedure_id = "4"
+def choose_by_decision_tree():
+    goal = choose_goal()
+    data_type = choose_data_type()
+    sample_type = choose_sample_type()
+    procedure_id = find_procedure(goal, data_type, sample_type)
 
     if procedure_id:
-        print("Use:", PROCEDURES[procedure_id]["name"])
-        print()
-        display_procedure_summary(procedure_id)
+        open_procedure(procedure_id)
+    else:
+        print_no_match_message(data_type, sample_type)
+
+
+def choose_goal():
+    print("Goal?")
+    print("1) Confidence interval")
+    print("2) Hypothesis test")
+    choice = input("Choice: ").strip()
+    print()
+    if choice == "1":
+        return "interval"
+    if choice == "2":
+        return "test"
+    print("Using hypothesis test by default.")
+    print()
+    return "test"
+
+
+def choose_data_type():
+    print("Data type?")
+    print("1) Categorical / proportion")
+    print("2) Quantitative / mean")
+    choice = input("Choice: ").strip()
+    print()
+    if choice == "1":
+        return "proportion"
+    if choice == "2":
+        return "mean"
+    print("Using quantitative / mean by default.")
+    print()
+    return "mean"
+
+
+def choose_sample_type():
+    print("Sample structure?")
+    print("1) One sample")
+    print("2) Two independent samples")
+    print("3) Paired data")
+    choice = input("Choice: ").strip()
+    print()
+    if choice == "1":
+        return "one"
+    if choice == "2":
+        return "two"
+    if choice == "3":
+        return "paired"
+    print("Using one sample by default.")
+    print()
+    return "one"
+
+
+def find_procedure(goal, data_type, sample_type):
+    for procedure_id, procedure in PROCEDURES.items():
+        if (
+            procedure["goal"] == goal
+            and procedure["data_type"] == data_type
+            and procedure["sample_type"] == sample_type
+        ):
+            return procedure_id
+    return ""
+
+
+def open_procedure(procedure_id):
+    procedure = PROCEDURES[procedure_id]
+    print("Use:", procedure["name"])
+    print()
+    display_procedure_summary(procedure_id)
+    if procedure["implemented"]:
         if ask_yes_no("Compute now? (y/n): "):
             print()
             run_procedure_computation(procedure_id)
+        else:
+            print()
     else:
-        print("Pick valid menu options.\n")
-
-
-def show_procedure_menu(procedure_id):
-    display_procedure_summary(procedure_id)
-    if ask_yes_no("Compute now? (y/n): "):
+        print("Computation for this procedure is not in v1.")
         print()
-        run_procedure_computation(procedure_id)
+
+
+def print_no_match_message(data_type, sample_type):
+    if data_type == "proportion" and sample_type == "paired":
+        print("No z/t procedure is listed here for paired categorical data.")
+        print("This calculator currently focuses on proportion z and mean t methods.")
+        print()
     else:
+        print("No matching procedure was found for that choice.")
         print()
 
 
@@ -184,6 +461,11 @@ def display_procedure_summary(procedure_id):
     procedure = PROCEDURES[procedure_id]
     print(procedure["name"])
     print("-" * len(procedure["name"]))
+    print("Status:")
+    if procedure["implemented"]:
+        print("- Implemented")
+    else:
+        print("- Guide only for now")
     print("Checks:")
     for item in procedure["checks"]:
         print("-", item)
@@ -200,13 +482,13 @@ def display_procedure_summary(procedure_id):
 
 
 def run_procedure_computation(procedure_id):
-    if procedure_id == "1":
+    if procedure_id == "one_prop_test":
         run_one_proportion_z_test()
-    elif procedure_id == "2":
+    elif procedure_id == "one_prop_interval":
         run_one_proportion_z_interval()
-    elif procedure_id == "3":
+    elif procedure_id == "one_mean_test":
         run_one_mean_t_test()
-    elif procedure_id == "4":
+    elif procedure_id == "one_mean_interval":
         run_one_mean_t_interval()
 
 
