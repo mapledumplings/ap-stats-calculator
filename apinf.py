@@ -1,3 +1,10 @@
+# TI-84 porting notes:
+# - Keep menus numeric and prompts short.
+# - Keep each procedure in a small function.
+# - Keep math helpers separate from display helpers.
+# - Avoid deep nesting and complex string formatting.
+# - If memory is tight later, shorten stored text in PROCEDURES.
+
 """AP Statistics inference helper.
 
 This command-line program helps students choose a one-sample or two-sample
@@ -330,6 +337,50 @@ DIRECT_MENU_TO_PROCEDURE = {
 }
 
 
+def print_title_block(title):
+    print(title)
+    print("-" * len(title))
+
+
+def print_section(title):
+    print(title)
+
+
+def print_setup_test(parameter_text, null_text, alt_text):
+    print_section("Setup")
+    print("- Parameter: " + parameter_text)
+    print("- H0: " + null_text)
+    print("- Ha: " + alt_text)
+    print()
+
+
+def print_setup_interval(parameter_text, interval_text):
+    print_section("Setup")
+    print("- Parameter: " + parameter_text)
+    print("- " + interval_text)
+    print()
+
+
+def print_note(text):
+    print("- " + text)
+
+
+def print_value_line(label, text):
+    print("- " + label + " = " + text)
+
+
+def print_interval_line(lower_bound, upper_bound):
+    text = "(" + format_number(lower_bound) + ", "
+    text = text + format_number(upper_bound) + ")"
+    print_value_line("Interval", text)
+
+
+def print_conclusion_text(text):
+    print("Conclusion")
+    print(text)
+    print()
+
+
 def main():
     """Run the main menu loop."""
     while True:
@@ -459,8 +510,7 @@ def print_no_match_message(data_type, sample_type):
 
 def display_procedure_summary(procedure_id):
     procedure = PROCEDURES[procedure_id]
-    print(procedure["name"])
-    print("-" * len(procedure["name"]))
+    print_title_block(procedure["name"])
     print("Status:")
     if procedure["implemented"]:
         print("- Implemented")
@@ -505,8 +555,7 @@ def run_procedure_computation(procedure_id):
 
 
 def run_one_proportion_z_test():
-    print("One-Proportion z-Test")
-    print("---------------------")
+    print_title_block("One-Proportion z-Test")
     context = get_context()
     successes, sample_size = get_successes_and_sample_size()
     null_proportion = get_probability("Null proportion p0: ")
@@ -524,42 +573,46 @@ def run_one_proportion_z_test():
     p_value = compute_z_test_p_value(z_statistic, tail)
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_one_proportion_test_checks(sample_size, null_proportion, population_size)
     )
     print()
-    print("Setup")
-    print(f"- Parameter: p = true proportion of {context}")
-    print(f"- H0: p = {format_number(null_proportion)}")
-    print(f"- Ha: p {tail} {format_number(null_proportion)}")
-    print()
-    print("Values")
-    print(
-        f"- p-hat = {successes} / {sample_size} = "
-        f"{format_number(sample_proportion)}"
+    print_setup_test(
+        "p = true proportion of " + context,
+        "p = " + format_number(null_proportion),
+        "p " + tail + " " + format_number(null_proportion),
     )
-    print(
-        f"- SE0 = sqrt(({format_number(null_proportion)})"
-        f"({format_number(1 - null_proportion)}) / {sample_size}) = "
-        f"{format_number(standard_error_null)}"
+    print_section("Values")
+    print_value_line(
+        "p-hat",
+        str(successes) + " / " + str(sample_size)
+        + " = " + format_number(sample_proportion),
     )
-    print(
-        f"- z = ({format_number(sample_proportion)} - "
-        f"{format_number(null_proportion)}) / "
-        f"{format_number(standard_error_null)} = {format_number(z_statistic)}"
+    print_value_line(
+        "SE0",
+        "sqrt((" + format_number(null_proportion) + ")"
+        + "(" + format_number(1 - null_proportion) + ") / "
+        + str(sample_size) + ") = "
+        + format_number(standard_error_null),
     )
-    print(f"- Alt direction = {tail}")
-    print(f"- p-value (normal model) = {format_number(p_value)}")
+    print_value_line(
+        "z",
+        "(" + format_number(sample_proportion) + " - "
+        + format_number(null_proportion) + ") / "
+        + format_number(standard_error_null) + " = "
+        + format_number(z_statistic),
+    )
+    print_value_line("Alt", tail)
+    print_value_line("p-value", format_number(p_value) + " (normal)")
     print()
-    print("Conclusion")
-    print(test_conclusion(p_value, alpha, "proportion", context, tail, null_proportion))
-    print()
+    print_conclusion_text(
+        test_conclusion(p_value, alpha, "proportion", context, tail, null_proportion)
+    )
 
 
 def run_one_proportion_z_interval():
-    print("One-Proportion z-Interval")
-    print("-------------------------")
+    print_title_block("One-Proportion z-Interval")
     context = get_context()
     successes, sample_size = get_successes_and_sample_size()
     confidence_level = get_confidence_level()
@@ -577,49 +630,50 @@ def run_one_proportion_z_interval():
     upper_bound = sample_proportion + margin_of_error
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_one_proportion_interval_checks(
             sample_size, sample_proportion, population_size
         )
     )
     print()
-    print("Setup")
-    print(f"- Parameter: p = true proportion of {context}")
-    print("- CI: p-hat +/- z*sqrt(p-hat(1-p-hat)/n)")
+    print_setup_interval(
+        "p = true proportion of " + context,
+        "CI: p-hat +/- z*sqrt(p-hat(1-p-hat)/n)",
+    )
+    print_section("Values")
+    print_value_line(
+        "p-hat",
+        str(successes) + " / " + str(sample_size)
+        + " = " + format_number(sample_proportion),
+    )
+    print_value_line("z*", format_number(z_critical))
+    print_value_line(
+        "SE",
+        "sqrt((" + format_number(sample_proportion) + ")"
+        + "(" + format_number(1 - sample_proportion) + ") / "
+        + str(sample_size) + ") = "
+        + format_number(standard_error),
+    )
+    print_value_line(
+        "ME",
+        format_number(z_critical) + " * "
+        + format_number(standard_error) + " = "
+        + format_number(margin_of_error),
+    )
+    print_interval_line(lower_bound, upper_bound)
     print()
-    print("Values")
-    print(
-        f"- p-hat = {successes} / {sample_size} = "
-        f"{format_number(sample_proportion)}"
+    print_conclusion_text(
+        "We are " + format_percent(confidence_level)
+        + " confident that the true proportion of "
+        + context + " is between "
+        + format_number(lower_bound) + " and "
+        + format_number(upper_bound) + "."
     )
-    print(f"- z* = {format_number(z_critical)}")
-    print(
-        f"- SE = sqrt(({format_number(sample_proportion)})"
-        f"({format_number(1 - sample_proportion)}) / {sample_size}) = "
-        f"{format_number(standard_error)}"
-    )
-    print(
-        f"- ME = {format_number(z_critical)} * {format_number(standard_error)} = "
-        f"{format_number(margin_of_error)}"
-    )
-    print(
-        f"- Interval = ({format_number(lower_bound)}, "
-        f"{format_number(upper_bound)})"
-    )
-    print()
-    print("Conclusion")
-    print(
-        f"We are {format_percent(confidence_level)} confident that the true "
-        f"proportion of {context} is between {format_number(lower_bound)} "
-        f"and {format_number(upper_bound)}."
-    )
-    print()
 
 
 def run_one_mean_t_test():
-    print("One-Mean t-Test")
-    print("---------------")
+    print_title_block("One-Mean t-Test")
     context = get_context()
     sample_mean = get_float("Sample mean x-bar: ")
     sample_sd = get_positive_float("Sample SD s: ")
@@ -635,39 +689,46 @@ def run_one_mean_t_test():
     degrees_freedom = sample_size - 1
     standard_error = sample_sd / math.sqrt(sample_size)
     t_statistic = (sample_mean - null_mean) / standard_error
-    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
-    p_value = p_value_info["p_value"]
+    p_value = approximate_t_test_p_value(t_statistic, degrees_freedom, tail)
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(get_one_mean_checks(sample_size, population_size, shape_is_ok))
     print()
-    print("Setup")
-    print(f"- Parameter: mu = true mean of {context}")
-    print(f"- H0: mu = {format_number(null_mean)}")
-    print(f"- Ha: mu {tail} {format_number(null_mean)}")
-    print()
-    print("Values")
-    print(
-        f"- SE = {format_number(sample_sd)} / sqrt({sample_size}) = "
-        f"{format_number(standard_error)}"
+    print_setup_test(
+        "mu = true mean of " + context,
+        "mu = " + format_number(null_mean),
+        "mu " + tail + " " + format_number(null_mean),
     )
-    print(
-        f"- t = ({format_number(sample_mean)} - {format_number(null_mean)}) / "
-        f"{format_number(standard_error)} = {format_number(t_statistic)}"
+    print_section("Values")
+    print_value_line(
+        "SE",
+        format_number(sample_sd) + " / sqrt(" + str(sample_size)
+        + ") = " + format_number(standard_error),
     )
-    print(f"- df = {degrees_freedom}")
-    print(f"- Alt direction = {tail}")
-    print_t_test_pvalue_details(p_value_info, "T-Test")
-    print()
-    print("Conclusion")
-    print(test_conclusion(p_value, alpha, "mean", context, tail, null_mean))
-    print()
+    print_value_line(
+        "t",
+        "(" + format_number(sample_mean) + " - "
+        + format_number(null_mean) + ") / "
+        + format_number(standard_error) + " = "
+        + format_number(t_statistic),
+    )
+    print_value_line("df", str(degrees_freedom))
+    print_value_line("Alt", tail)
+    print_t_test_pvalue_details(
+        p_value,
+        t_statistic,
+        degrees_freedom,
+        tail,
+        "T-Test",
+    )
+    print_conclusion_text(
+        test_conclusion(p_value, alpha, "mean", context, tail, null_mean)
+    )
 
 
 def run_one_mean_t_interval():
-    print("One-Mean t-Interval")
-    print("-------------------")
+    print_title_block("One-Mean t-Interval")
     context = get_context()
     sample_mean = get_float("Sample mean x-bar: ")
     sample_sd = get_positive_float("Sample SD s: ")
@@ -686,41 +747,40 @@ def run_one_mean_t_interval():
     upper_bound = sample_mean + margin_of_error
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(get_one_mean_checks(sample_size, population_size, shape_is_ok))
     print()
-    print("Setup")
-    print(f"- Parameter: mu = true mean of {context}")
-    print("- CI: x-bar +/- t*(s / sqrt(n))")
+    print_setup_interval(
+        "mu = true mean of " + context,
+        "CI: x-bar +/- t*(s / sqrt(n))",
+    )
+    print_section("Values")
+    print_value_line(
+        "SE",
+        format_number(sample_sd) + " / sqrt(" + str(sample_size)
+        + ") = " + format_number(standard_error),
+    )
+    print_value_line("t*", format_number(t_critical))
+    print_value_line(
+        "ME",
+        format_number(t_critical) + " * "
+        + format_number(standard_error) + " = "
+        + format_number(margin_of_error),
+    )
+    print_interval_line(lower_bound, upper_bound)
+    print_value_line("df", str(degrees_freedom))
     print()
-    print("Values")
-    print(
-        f"- SE = {format_number(sample_sd)} / sqrt({sample_size}) = "
-        f"{format_number(standard_error)}"
+    print_conclusion_text(
+        "We are " + format_percent(confidence_level)
+        + " confident that the true mean of "
+        + context + " is between "
+        + format_number(lower_bound) + " and "
+        + format_number(upper_bound) + "."
     )
-    print(f"- t* = {format_number(t_critical)}")
-    print(
-        f"- ME = {format_number(t_critical)} * {format_number(standard_error)} = "
-        f"{format_number(margin_of_error)}"
-    )
-    print(
-        f"- Interval = ({format_number(lower_bound)}, "
-        f"{format_number(upper_bound)})"
-    )
-    print(f"- df = {degrees_freedom}")
-    print()
-    print("Conclusion")
-    print(
-        f"We are {format_percent(confidence_level)} confident that the true "
-        f"mean of {context} is between {format_number(lower_bound)} and "
-        f"{format_number(upper_bound)}."
-    )
-    print()
 
 
 def run_two_proportion_z_test():
-    print("Two-Proportion z-Test")
-    print("---------------------")
+    print_title_block("Two-Proportion z-Test")
     group_1, group_2 = get_two_group_contexts()
     successes_1, sample_size_1, successes_2, sample_size_2 = get_two_group_counts()
     tail = get_tail()
@@ -740,7 +800,7 @@ def run_two_proportion_z_test():
     p_value = compute_z_test_p_value(z_statistic, tail)
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_two_proportion_test_checks(
             sample_size_1,
@@ -751,50 +811,61 @@ def run_two_proportion_z_test():
         )
     )
     print()
-    print("Setup")
-    print(f"- Parameter: p1 - p2 = true proportion of {group_1} minus {group_2}")
-    print("- H0: p1 - p2 = 0")
-    print(f"- Ha: p1 - p2 {tail} 0")
-    print("- Normal approximation used for the z test.")
+    print_setup_test(
+        "p1 - p2 = true proportion of " + group_1 + " minus " + group_2,
+        "p1 - p2 = 0",
+        "p1 - p2 " + tail + " 0",
+    )
+    print_note("Normal approximation used for the z test.")
     print()
-    print("Values")
-    print(f"- p-hat1 = {successes_1} / {sample_size_1} = {format_number(sample_proportion_1)}")
-    print(f"- p-hat2 = {successes_2} / {sample_size_2} = {format_number(sample_proportion_2)}")
-    print(
-        f"- p-hatc = ({successes_1} + {successes_2}) / "
-        f"({sample_size_1} + {sample_size_2}) = {format_number(pooled_proportion)}"
+    print_section("Values")
+    print_value_line(
+        "p-hat1",
+        str(successes_1) + " / " + str(sample_size_1)
+        + " = " + format_number(sample_proportion_1),
     )
-    print(
-        f"- SE0 = sqrt(({format_number(pooled_proportion)})"
-        f"({format_number(1 - pooled_proportion)})"
-        f"(1/{sample_size_1} + 1/{sample_size_2})) = "
-        f"{format_number(standard_error_null)}"
+    print_value_line(
+        "p-hat2",
+        str(successes_2) + " / " + str(sample_size_2)
+        + " = " + format_number(sample_proportion_2),
     )
-    print(
-        f"- z = ({format_number(sample_proportion_1)} - "
-        f"{format_number(sample_proportion_2)}) / "
-        f"{format_number(standard_error_null)} = {format_number(z_statistic)}"
+    print_value_line(
+        "p-hatc",
+        "(" + str(successes_1) + " + " + str(successes_2) + ") / ("
+        + str(sample_size_1) + " + " + str(sample_size_2) + ") = "
+        + format_number(pooled_proportion),
     )
-    print(f"- Alt direction = {tail}")
-    print(f"- p-value (normal model) = {format_number(p_value)}")
+    print_value_line(
+        "SE0",
+        "sqrt((" + format_number(pooled_proportion) + ")"
+        + "(" + format_number(1 - pooled_proportion) + ")"
+        + "(1/" + str(sample_size_1) + " + 1/" + str(sample_size_2) + ")) = "
+        + format_number(standard_error_null),
+    )
+    print_value_line(
+        "z",
+        "(" + format_number(sample_proportion_1) + " - "
+        + format_number(sample_proportion_2) + ") / "
+        + format_number(standard_error_null) + " = "
+        + format_number(z_statistic),
+    )
+    print_value_line("Alt", tail)
+    print_value_line("p-value", format_number(p_value) + " (normal)")
     print()
-    print("Conclusion")
-    print(
+    print_conclusion_text(
         test_conclusion(
             p_value,
             alpha,
             "difference in proportions",
-            f"{group_1} minus {group_2}",
+            group_1 + " minus " + group_2,
             tail,
             0.0,
         )
     )
-    print()
 
 
 def run_two_proportion_z_interval():
-    print("Two-Proportion z-Interval")
-    print("-------------------------")
+    print_title_block("Two-Proportion z-Interval")
     group_1, group_2 = get_two_group_contexts()
     successes_1, sample_size_1, successes_2, sample_size_2 = get_two_group_counts()
     confidence_level = get_confidence_level()
@@ -814,7 +885,7 @@ def run_two_proportion_z_interval():
     upper_bound = difference + margin_of_error
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_two_proportion_interval_checks(
             sample_size_1,
@@ -826,44 +897,54 @@ def run_two_proportion_z_interval():
         )
     )
     print()
-    print("Setup")
-    print(f"- Parameter: p1 - p2 = true proportion of {group_1} minus {group_2}")
-    print("- CI: (p-hat1 - p-hat2) +/- z*SE")
-    print("- Normal approximation used for the z interval.")
+    print_setup_interval(
+        "p1 - p2 = true proportion of " + group_1 + " minus " + group_2,
+        "CI: (p-hat1 - p-hat2) +/- z*SE",
+    )
+    print_note("Normal approximation used for the z interval.")
     print()
-    print("Values")
-    print(f"- p-hat1 = {successes_1} / {sample_size_1} = {format_number(sample_proportion_1)}")
-    print(f"- p-hat2 = {successes_2} / {sample_size_2} = {format_number(sample_proportion_2)}")
-    print(f"- p-hat1 - p-hat2 = {format_number(difference)}")
-    print(f"- z* = {format_number(z_critical)}")
-    print(
-        f"- SE = sqrt(({format_number(sample_proportion_1)})"
-        f"({format_number(1 - sample_proportion_1)})/{sample_size_1} + "
-        f"({format_number(sample_proportion_2)})"
-        f"({format_number(1 - sample_proportion_2)})/{sample_size_2}) = "
-        f"{format_number(standard_error)}"
+    print_section("Values")
+    print_value_line(
+        "p-hat1",
+        str(successes_1) + " / " + str(sample_size_1)
+        + " = " + format_number(sample_proportion_1),
     )
-    print(
-        f"- ME = {format_number(z_critical)} * {format_number(standard_error)} = "
-        f"{format_number(margin_of_error)}"
+    print_value_line(
+        "p-hat2",
+        str(successes_2) + " / " + str(sample_size_2)
+        + " = " + format_number(sample_proportion_2),
     )
-    print(
-        f"- Interval = ({format_number(lower_bound)}, "
-        f"{format_number(upper_bound)})"
+    print_value_line("p-hat1 - p-hat2", format_number(difference))
+    print_value_line("z*", format_number(z_critical))
+    print_value_line(
+        "SE",
+        "sqrt((" + format_number(sample_proportion_1) + ")"
+        + "(" + format_number(1 - sample_proportion_1) + ")/"
+        + str(sample_size_1) + " + ("
+        + format_number(sample_proportion_2) + ")"
+        + "(" + format_number(1 - sample_proportion_2) + ")/"
+        + str(sample_size_2) + ") = "
+        + format_number(standard_error),
     )
+    print_value_line(
+        "ME",
+        format_number(z_critical) + " * "
+        + format_number(standard_error) + " = "
+        + format_number(margin_of_error),
+    )
+    print_interval_line(lower_bound, upper_bound)
     print()
-    print("Conclusion")
-    print(
-        f"We are {format_percent(confidence_level)} confident that p1 - p2, "
-        f"the true difference in proportions of {group_1} minus {group_2}, "
-        f"is between {format_number(lower_bound)} and {format_number(upper_bound)}."
+    print_conclusion_text(
+        "We are " + format_percent(confidence_level)
+        + " confident that p1 - p2, the true difference in proportions of "
+        + group_1 + " minus " + group_2 + ", is between "
+        + format_number(lower_bound) + " and "
+        + format_number(upper_bound) + "."
     )
-    print()
 
 
 def run_two_sample_t_test():
-    print("Two-Sample t-Test")
-    print("-----------------")
+    print_title_block("Two-Sample t-Test")
     group_1, group_2 = get_two_group_contexts()
     mean_1, sd_1, sample_size_1, mean_2, sd_2, sample_size_2 = get_two_sample_mean_inputs()
     tail = get_tail()
@@ -877,11 +958,10 @@ def run_two_sample_t_test():
     standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
     t_statistic = difference / standard_error
     degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
-    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
-    p_value = p_value_info["p_value"]
+    p_value = approximate_t_test_p_value(t_statistic, degrees_freedom, tail)
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_two_mean_checks(
             sample_size_1,
@@ -893,48 +973,55 @@ def run_two_sample_t_test():
         )
     )
     print()
-    print("Setup")
-    print(f"- Parameter: mu1 - mu2 = true mean of {group_1} minus {group_2}")
-    print("- H0: mu1 - mu2 = 0")
-    print(f"- Ha: mu1 - mu2 {tail} 0")
-    print()
-    print("Values")
-    print(f"- x1-bar = {format_number(mean_1)}")
-    print(f"- s1 = {format_number(sd_1)}")
-    print(f"- n1 = {sample_size_1}")
-    print(f"- x2-bar = {format_number(mean_2)}")
-    print(f"- s2 = {format_number(sd_2)}")
-    print(f"- n2 = {sample_size_2}")
-    print(f"- x1-bar - x2-bar = {format_number(difference)}")
-    print(
-        f"- SE = sqrt({format_number(sd_1 ** 2)}/{sample_size_1} + "
-        f"{format_number(sd_2 ** 2)}/{sample_size_2}) = "
-        f"{format_number(standard_error)}"
+    print_setup_test(
+        "mu1 - mu2 = true mean of " + group_1 + " minus " + group_2,
+        "mu1 - mu2 = 0",
+        "mu1 - mu2 " + tail + " 0",
     )
-    print(
-        f"- t = {format_number(difference)} / {format_number(standard_error)} = "
-        f"{format_number(t_statistic)}"
+    print_section("Values")
+    print_value_line("x1-bar", format_number(mean_1))
+    print_value_line("s1", format_number(sd_1))
+    print_value_line("n1", str(sample_size_1))
+    print_value_line("x2-bar", format_number(mean_2))
+    print_value_line("s2", format_number(sd_2))
+    print_value_line("n2", str(sample_size_2))
+    print_value_line("x1-bar - x2-bar", format_number(difference))
+    print_value_line(
+        "SE",
+        "sqrt(" + format_number(sd_1 ** 2) + "/" + str(sample_size_1)
+        + " + " + format_number(sd_2 ** 2) + "/"
+        + str(sample_size_2) + ") = "
+        + format_number(standard_error),
     )
-    print(f"- df (Welch approx) = {format_number(degrees_freedom)}")
-    print(f"- Alt direction = {tail}")
-    print_t_test_pvalue_details(p_value_info, "2-SampTTest")
-    print("Conclusion")
-    print(
+    print_value_line(
+        "t",
+        format_number(difference) + " / "
+        + format_number(standard_error) + " = "
+        + format_number(t_statistic),
+    )
+    print_value_line("df", format_number(degrees_freedom) + " (Welch)")
+    print_value_line("Alt", tail)
+    print_t_test_pvalue_details(
+        p_value,
+        t_statistic,
+        degrees_freedom,
+        tail,
+        "2-SampTTest",
+    )
+    print_conclusion_text(
         test_conclusion(
             p_value,
             alpha,
             "difference in means",
-            f"{group_1} minus {group_2}",
+            group_1 + " minus " + group_2,
             tail,
             0.0,
         )
     )
-    print()
 
 
 def run_two_sample_t_interval():
-    print("Two-Sample t-Interval")
-    print("---------------------")
+    print_title_block("Two-Sample t-Interval")
     group_1, group_2 = get_two_group_contexts()
     mean_1, sd_1, sample_size_1, mean_2, sd_2, sample_size_2 = get_two_sample_mean_inputs()
     confidence_level = get_confidence_level()
@@ -952,7 +1039,7 @@ def run_two_sample_t_interval():
     upper_bound = difference + margin_of_error
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(
         get_two_mean_checks(
             sample_size_1,
@@ -964,40 +1051,40 @@ def run_two_sample_t_interval():
         )
     )
     print()
-    print("Setup")
-    print(f"- Parameter: mu1 - mu2 = true mean of {group_1} minus {group_2}")
-    print("- CI: (x1-bar - x2-bar) +/- t*SE")
+    print_setup_interval(
+        "mu1 - mu2 = true mean of " + group_1 + " minus " + group_2,
+        "CI: (x1-bar - x2-bar) +/- t*SE",
+    )
+    print_section("Values")
+    print_value_line("x1-bar - x2-bar", format_number(difference))
+    print_value_line(
+        "SE",
+        "sqrt(" + format_number(sd_1 ** 2) + "/" + str(sample_size_1)
+        + " + " + format_number(sd_2 ** 2) + "/"
+        + str(sample_size_2) + ") = "
+        + format_number(standard_error),
+    )
+    print_value_line("df", format_number(degrees_freedom) + " (Welch)")
+    print_value_line("t*", format_number(t_critical))
+    print_value_line(
+        "ME",
+        format_number(t_critical) + " * "
+        + format_number(standard_error) + " = "
+        + format_number(margin_of_error),
+    )
+    print_interval_line(lower_bound, upper_bound)
     print()
-    print("Values")
-    print(f"- x1-bar - x2-bar = {format_number(difference)}")
-    print(
-        f"- SE = sqrt({format_number(sd_1 ** 2)}/{sample_size_1} + "
-        f"{format_number(sd_2 ** 2)}/{sample_size_2}) = "
-        f"{format_number(standard_error)}"
+    print_conclusion_text(
+        "We are " + format_percent(confidence_level)
+        + " confident that mu1 - mu2, the true difference in means of "
+        + group_1 + " minus " + group_2 + ", is between "
+        + format_number(lower_bound) + " and "
+        + format_number(upper_bound) + "."
     )
-    print(f"- df (Welch approx) = {format_number(degrees_freedom)}")
-    print(f"- t* = {format_number(t_critical)}")
-    print(
-        f"- ME = {format_number(t_critical)} * {format_number(standard_error)} = "
-        f"{format_number(margin_of_error)}"
-    )
-    print(
-        f"- Interval = ({format_number(lower_bound)}, "
-        f"{format_number(upper_bound)})"
-    )
-    print()
-    print("Conclusion")
-    print(
-        f"We are {format_percent(confidence_level)} confident that mu1 - mu2, "
-        f"the true difference in means of {group_1} minus {group_2}, "
-        f"is between {format_number(lower_bound)} and {format_number(upper_bound)}."
-    )
-    print()
 
 
 def run_paired_t_test():
-    print("Paired t-Test")
-    print("-------------")
+    print_title_block("Paired t-Test")
     difference_context = get_context_with_prompt("Difference context: ")
     mean_difference = get_float("Mean diff d-bar: ")
     sd_difference = get_positive_float("SD of diffs s_d: ")
@@ -1010,34 +1097,41 @@ def run_paired_t_test():
     degrees_freedom = sample_size - 1
     standard_error = sd_difference / math.sqrt(sample_size)
     t_statistic = mean_difference / standard_error
-    p_value_info = compute_t_test_p_value_info(t_statistic, degrees_freedom, tail)
-    p_value = p_value_info["p_value"]
+    p_value = approximate_t_test_p_value(t_statistic, degrees_freedom, tail)
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(get_paired_mean_checks(sample_size, population_size, shape_is_ok))
     print()
-    print("Setup")
-    print(f"- Parameter: mu_d = true mean difference for {difference_context}")
-    print("- H0: mu_d = 0")
-    print(f"- Ha: mu_d {tail} 0")
-    print()
-    print("Values")
-    print(f"- d-bar = {format_number(mean_difference)}")
-    print(f"- s_d = {format_number(sd_difference)}")
-    print(
-        f"- SE = {format_number(sd_difference)} / sqrt({sample_size}) = "
-        f"{format_number(standard_error)}"
+    print_setup_test(
+        "mu_d = true mean difference for " + difference_context,
+        "mu_d = 0",
+        "mu_d " + tail + " 0",
     )
-    print(
-        f"- t = {format_number(mean_difference)} / {format_number(standard_error)} = "
-        f"{format_number(t_statistic)}"
+    print_section("Values")
+    print_value_line("d-bar", format_number(mean_difference))
+    print_value_line("s_d", format_number(sd_difference))
+    print_value_line(
+        "SE",
+        format_number(sd_difference) + " / sqrt(" + str(sample_size)
+        + ") = " + format_number(standard_error),
     )
-    print(f"- df = {degrees_freedom}")
-    print(f"- Alt direction = {tail}")
-    print_t_test_pvalue_details(p_value_info, "T-Test")
-    print("Conclusion")
-    print(
+    print_value_line(
+        "t",
+        format_number(mean_difference) + " / "
+        + format_number(standard_error) + " = "
+        + format_number(t_statistic),
+    )
+    print_value_line("df", str(degrees_freedom))
+    print_value_line("Alt", tail)
+    print_t_test_pvalue_details(
+        p_value,
+        t_statistic,
+        degrees_freedom,
+        tail,
+        "T-Test",
+    )
+    print_conclusion_text(
         test_conclusion(
             p_value,
             alpha,
@@ -1047,12 +1141,10 @@ def run_paired_t_test():
             0.0,
         )
     )
-    print()
 
 
 def run_paired_t_interval():
-    print("Paired t-Interval")
-    print("-----------------")
+    print_title_block("Paired t-Interval")
     difference_context = get_context_with_prompt("Difference context: ")
     mean_difference = get_float("Mean diff d-bar: ")
     sd_difference = get_positive_float("SD of diffs s_d: ")
@@ -1069,38 +1161,38 @@ def run_paired_t_interval():
     upper_bound = mean_difference + margin_of_error
 
     print()
-    print("Checks")
+    print_section("Checks")
     print_checks(get_paired_mean_checks(sample_size, population_size, shape_is_ok))
     print()
-    print("Setup")
-    print(f"- Parameter: mu_d = true mean difference for {difference_context}")
-    print("- CI: d-bar +/- t*SE")
+    print_setup_interval(
+        "mu_d = true mean difference for " + difference_context,
+        "CI: d-bar +/- t*SE",
+    )
+    print_section("Values")
+    print_value_line("d-bar", format_number(mean_difference))
+    print_value_line("s_d", format_number(sd_difference))
+    print_value_line(
+        "SE",
+        format_number(sd_difference) + " / sqrt(" + str(sample_size)
+        + ") = " + format_number(standard_error),
+    )
+    print_value_line("df", str(degrees_freedom))
+    print_value_line("t*", format_number(t_critical))
+    print_value_line(
+        "ME",
+        format_number(t_critical) + " * "
+        + format_number(standard_error) + " = "
+        + format_number(margin_of_error),
+    )
+    print_interval_line(lower_bound, upper_bound)
     print()
-    print("Values")
-    print(f"- d-bar = {format_number(mean_difference)}")
-    print(f"- s_d = {format_number(sd_difference)}")
-    print(
-        f"- SE = {format_number(sd_difference)} / sqrt({sample_size}) = "
-        f"{format_number(standard_error)}"
+    print_conclusion_text(
+        "We are " + format_percent(confidence_level)
+        + " confident that mu_d, the true mean difference for "
+        + difference_context + ", is between "
+        + format_number(lower_bound) + " and "
+        + format_number(upper_bound) + "."
     )
-    print(f"- df = {degrees_freedom}")
-    print(f"- t* = {format_number(t_critical)}")
-    print(
-        f"- ME = {format_number(t_critical)} * {format_number(standard_error)} = "
-        f"{format_number(margin_of_error)}"
-    )
-    print(
-        f"- Interval = ({format_number(lower_bound)}, "
-        f"{format_number(upper_bound)})"
-    )
-    print()
-    print("Conclusion")
-    print(
-        f"We are {format_percent(confidence_level)} confident that mu_d, the "
-        f"true mean difference for {difference_context}, is between "
-        f"{format_number(lower_bound)} and {format_number(upper_bound)}."
-    )
-    print()
 
 
 def get_one_proportion_test_checks(sample_size, null_proportion, population_size):
@@ -1440,39 +1532,27 @@ def compute_z_test_p_value(z_statistic, tail):
     return tail_p_value(normal_cdf(z_statistic), tail)
 
 
-def compute_t_test_p_value_info(t_statistic, degrees_freedom, tail):
-    return {
-        "p_value": approximate_t_test_p_value(t_statistic, degrees_freedom, tail),
-        "test_statistic": t_statistic,
-        "degrees_freedom": degrees_freedom,
-        "tail": tail,
-        "label": "numerical t approx",
-        "note": (
-            "Exact t-model p-values are not available from the standard "
-            "library alone here, so this uses numerical integration. "
-            "The code is separated so an exact t routine could be added later."
-        ),
-    }
-
-
 def approximate_t_test_p_value(t_statistic, degrees_freedom, tail):
     return tail_p_value(t_cdf(t_statistic, degrees_freedom), tail)
 
 
-def print_t_test_pvalue_details(p_value_info, calculator_test_name):
-    print(
-        f"- p-value ({p_value_info['label']}) = "
-        f"{format_number(p_value_info['p_value'])}"
+def print_t_test_pvalue_details(
+    p_value,
+    t_statistic,
+    degrees_freedom,
+    tail,
+    calculator_test_name,
+):
+    print_value_line("p-value", format_number(p_value) + " (numerical t approx)")
+    print_note("Plain math code has no exact t CDF.")
+    print_note("This uses numerical integration.")
+    print_note("An exact t routine can be added later.")
+    print_note(
+        "Calculator: use " + calculator_test_name
+        + " or tcdf."
     )
-    print(f"- {p_value_info['note']}")
-    print(
-        f"- Calculator: use {calculator_test_name} or tcdf with "
-        f"t = {format_number(p_value_info['test_statistic'])} and "
-        f"df ~= {format_number(p_value_info['degrees_freedom'])}."
-    )
-    print(
-        f"- tcdf form: "
-        f"{tcdf_instruction(p_value_info['test_statistic'], p_value_info['degrees_freedom'], p_value_info['tail'])}"
+    print_note(
+        "tcdf: " + tcdf_instruction(t_statistic, degrees_freedom, tail)
     )
 
 
