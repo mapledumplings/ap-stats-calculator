@@ -1,6 +1,6 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context. The current code is also written to transfer cleanly to a TI-84 Plus CE Python calculator.
+`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context. The repo now includes both a full desktop version and a compact TI-84 version.
 
 ## Supported Procedures
 
@@ -18,6 +18,11 @@ The current version supports:
 - Paired t-interval
 
 The decision tree also distinguishes paired categorical data, which is not part of the current z/t procedure set in this project.
+
+## Which File to Use
+
+- `apinf.py` - full desktop version with more explanatory text
+- `apinf_ti.py` - compact TI-84 Plus CE Python version with shorter menus and lower memory use
 
 ## Demo Menu Flow
 
@@ -108,7 +113,7 @@ Recommended setup:
 1. Update the calculator to the latest CE Bundle / Python App release.
 2. Install [TI Connect CE](https://education.ti.com/html/webhelp/EG_TI84PlusCE/EN/Subsystems/EG_TIC_84CE_SW/Content/EG_84_TIConnect/M_IntroTIC-CE/TC_IntroToTIConnect.HTML) on your computer.
 3. Connect the calculator to your computer with USB.
-4. Send `apinf.py` to the calculator using **Send to Calculators** in TI Connect CE.
+4. Send `apinf_ti.py` to the calculator using **Send to Calculators** in TI Connect CE.
 5. TI Connect CE will convert the `.py` file to a Python AppVar (`.8xv`) when it sends it to the calculator.
 6. Store the program in **RAM**, not Archive, because the Python App runs and edits Python AppVars from RAM.
 7. Open the **Python App** on the calculator and run the transferred program.
@@ -127,6 +132,7 @@ Why this code is calculator-friendly:
 3. Functions are kept small.
 4. The two-sample t procedures use a conservative integer `df`, which is easier to support on the calculator.
 5. The t-distribution helper avoids `math.gamma`, which makes TI porting safer.
+6. The compact TI file is much smaller than the full desktop file.
 
 Useful TI references:
 
@@ -171,5 +177,6 @@ Built a Python command-line AP Statistics inference calculator that selects appr
 ## Project Files
 
 - `apinf.py` - main application
+- `apinf_ti.py` - compact TI-84 version
 - `examples/sample_problems.txt` - sample AP Statistics-style prompts
 - `README.md` - project overview and usage
