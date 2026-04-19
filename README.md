@@ -1,6 +1,6 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context.
+`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context. The current code is also written to transfer cleanly to a TI-84 Plus CE Python calculator.
 
 ## Supported Procedures
 
@@ -99,19 +99,40 @@ Values
 python apinf.py
 ```
 
-## How to Port to a Calculator
+## TI-84 Installation and Use
 
-This project was written to be portable to a TI-84 Python calculator later.
+This project is intended for the **TI-84 Plus CE Python** family.
 
-Suggested porting steps:
+Recommended setup:
 
-1. Keep the numeric menus and short prompts.
-2. Move long explanation text into shorter calculator-friendly labels.
-3. Keep the math helper functions separate from the menu/display code.
-4. Replace longer README-style wording with abbreviations for calculator screens.
-5. Test one procedure at a time after moving it to the calculator.
+1. Update the calculator to the latest CE Bundle / Python App release.
+2. Install [TI Connect CE](https://education.ti.com/html/webhelp/EG_TI84PlusCE/EN/Subsystems/EG_TIC_84CE_SW/Content/EG_84_TIConnect/M_IntroTIC-CE/TC_IntroToTIConnect.HTML) on your computer.
+3. Connect the calculator to your computer with USB.
+4. Send `apinf.py` to the calculator using **Send to Calculators** in TI Connect CE.
+5. TI Connect CE will convert the `.py` file to a Python AppVar (`.8xv`) when it sends it to the calculator.
+6. Store the program in **RAM**, not Archive, because the Python App runs and edits Python AppVars from RAM.
+7. Open the **Python App** on the calculator and run the transferred program.
 
-The top of `apinf.py` also includes TI-84 porting notes for future refactoring.
+Important TI notes:
+
+- TI says the Python App may prompt you to update to the latest CE Bundle the first time you open it.
+- TI Connect CE applies calculator naming rules when converting `.py` files to Python AppVars.
+- Lowercase file names are automatically changed to uppercase on the calculator.
+- If a file name does not match TI naming rules, TI Connect CE may rename it automatically.
+
+Why this code is calculator-friendly:
+
+1. Menus are numeric.
+2. Print output is shorter than a desktop-only version.
+3. Functions are kept small.
+4. The two-sample t procedures use a conservative integer `df`, which is easier to support on the calculator.
+5. The t-distribution helper avoids `math.gamma`, which makes TI porting safer.
+
+Useful TI references:
+
+- [Using TI Connect CE to convert and send Python programs](https://education.ti.com/html/webhelp/EG_TI84PlusCE/EN/Subsystems/EG_TIC_84CE_SW/Content/EG_84_TIConnect/M_UsePython/M_UsePython.HTML)
+- [Using the Python App on TI-84 Plus CE Python](https://education.ti.com/html/eguides/graphing/84pluscepy/en/content/eg_pythonappprog/m_pyadpapp/m_pyappuse.HTML)
+- [TI-84 Plus CE Python getting started page](https://education.ti.com/en/resources/getting-started-on-ti-technology/ti-84-plus-ce-python)
 
 ## How to Upload to GitHub
 

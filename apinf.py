@@ -4,6 +4,8 @@
 # - Keep math helpers separate from display helpers.
 # - Avoid deep nesting and complex string formatting.
 # - If memory is tight later, shorten stored text in PROCEDURES.
+# - Keep the file name short; TI Python AppVars use calculator naming rules.
+# - Prefer integer df logic where possible for calculator compatibility.
 
 """AP Statistics inference helper.
 
@@ -957,7 +959,7 @@ def run_two_sample_t_test():
     difference = mean_1 - mean_2
     standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
     t_statistic = difference / standard_error
-    degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
+    degrees_freedom = conservative_two_sample_df(sample_size_1, sample_size_2)
     p_value = approximate_t_test_p_value(t_statistic, degrees_freedom, tail)
 
     print()
@@ -999,7 +1001,7 @@ def run_two_sample_t_test():
         + format_number(standard_error) + " = "
         + format_number(t_statistic),
     )
-    print_value_line("df", format_number(degrees_freedom) + " (Welch)")
+    print_value_line("df", str(degrees_freedom) + " (conservative)")
     print_value_line("Alt", tail)
     print_t_test_pvalue_details(
         p_value,
@@ -1032,7 +1034,7 @@ def run_two_sample_t_interval():
 
     difference = mean_1 - mean_2
     standard_error = math.sqrt((sd_1 ** 2 / sample_size_1) + (sd_2 ** 2 / sample_size_2))
-    degrees_freedom = welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2)
+    degrees_freedom = conservative_two_sample_df(sample_size_1, sample_size_2)
     t_critical = inverse_t_cdf((1 + confidence_level) / 2, degrees_freedom)
     margin_of_error = t_critical * standard_error
     lower_bound = difference - margin_of_error
@@ -1064,7 +1066,7 @@ def run_two_sample_t_interval():
         + str(sample_size_2) + ") = "
         + format_number(standard_error),
     )
-    print_value_line("df", format_number(degrees_freedom) + " (Welch)")
+    print_value_line("df", str(degrees_freedom) + " (conservative)")
     print_value_line("t*", format_number(t_critical))
     print_value_line(
         "ME",
@@ -1586,7 +1588,7 @@ def inverse_t_cdf(probability, degrees_freedom):
     # Binary search again keeps the implementation simple for calculator porting.
     low = -20.0
     high = 20.0
-    for _ in range(80):
+    for _ in range(50):
         mid = (low + high) / 2
         if t_cdf(mid, degrees_freedom) < probability:
             low = mid
@@ -1599,7 +1601,7 @@ def integrate_t_density(start, end, degrees_freedom):
     if start == end:
         return 0.0
 
-    steps = 600
+    steps = 240
     if steps % 2 == 1:
         steps += 1
 
@@ -1617,22 +1619,39 @@ def integrate_t_density(start, end, degrees_freedom):
 
 
 def t_density(x_value, degrees_freedom):
-    numerator = math.gamma((degrees_freedom + 1) / 2)
-    denominator = (
-        math.sqrt(degrees_freedom * math.pi) * math.gamma(degrees_freedom / 2)
-    )
+    constant = t_density_constant(degrees_freedom)
     exponent = -((degrees_freedom + 1) / 2)
-    return (numerator / denominator) * (
-        1 + (x_value ** 2) / degrees_freedom
-    ) ** exponent
+    return constant * (1 + (x_value ** 2) / degrees_freedom) ** exponent
 
 
-def welch_degrees_freedom(sd_1, sample_size_1, sd_2, sample_size_2):
-    part_1 = (sd_1 ** 2) / sample_size_1
-    part_2 = (sd_2 ** 2) / sample_size_2
-    numerator = (part_1 + part_2) ** 2
-    denominator = ((part_1 ** 2) / (sample_size_1 - 1)) + ((part_2 ** 2) / (sample_size_2 - 1))
-    return numerator / denominator
+def t_density_constant(degrees_freedom):
+    df = int(degrees_freedom)
+    if df <= 0:
+        return 0.0
+    if df == 1:
+        return 1 / math.pi
+    if df == 2:
+        return 1 / (2 * math.sqrt(2))
+    if df % 2 == 1:
+        constant = 1 / math.pi
+        start = 1
+    else:
+        constant = 1 / (2 * math.sqrt(2))
+        start = 2
+    current = start
+    while current < df:
+        ratio = ((current + 1) / current) * math.sqrt(current / (current + 2))
+        constant = constant * ratio
+        current = current + 2
+    return constant
+
+
+def conservative_two_sample_df(sample_size_1, sample_size_2):
+    df_1 = sample_size_1 - 1
+    df_2 = sample_size_2 - 1
+    if df_1 < df_2:
+        return df_1
+    return df_2
 
 
 def tail_p_value(cumulative_probability, tail):
