@@ -1,26 +1,10 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a small command-line Python project that supports common AP Statistics inference procedures. It is designed to help students choose the correct method, review the required conditions, and complete the setup, calculations, and conclusion expected on free-response work.
+`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context.
 
-## Why This Project Matters
+## Supported Procedures
 
-AP Statistics students often know the formulas but still struggle with procedure selection, condition checks, and writing complete statistical conclusions. This project focuses on that full workflow, combining method selection with computation and short response templates in a format that can later be adapted for a TI-84 Python calculator.
-
-## Features
-
-- Menu-based command-line interface
-- Three-step decision tree based on goal, data type, and sample structure
-- Built-in checks and conditions for each supported method
-- Formula and setup reminders for full-credit written work
-- Computation of test statistics, p-values, critical values, and intervals
-- Normal-model p-values for z-tests using the standard library
-- Numerical t-model p-value approximation with calculator guidance for t-tests
-- Short conclusion templates written in context
-- Beginner-friendly Python with no external dependencies beyond `math`
-
-## Current Procedures
-
-Version 1 includes:
+The current version supports:
 
 - One-proportion z-test
 - One-proportion z-interval
@@ -33,35 +17,9 @@ Version 1 includes:
 - Paired t-test
 - Paired t-interval
 
-The decision tree also distinguishes paired categorical data, which is not part
-of the current z/t procedure set in this project.
+The decision tree also distinguishes paired categorical data, which is not part of the current z/t procedure set in this project.
 
-For each procedure, the program provides:
-
-- Method name
-- Conditions and checks
-- Formula/setup
-- Required input values
-- Computed values
-- Conclusion template
-
-## Project Structure
-
-- `apinf.py` - main application
-- `examples/sample_problems.txt` - sample AP Statistics-style prompts
-- `README.md` - project overview and usage
-
-## How to Run
-
-Use Python 3 and run:
-
-```bash
-python apinf.py
-```
-
-## Example Usage
-
-Example menu flow:
+## Demo Menu Flow
 
 ```text
 =================================
@@ -89,55 +47,108 @@ Sample structure?
 1) One sample
 2) Two independent samples
 3) Paired data
-Choice: 1
+Choice: 2
 
-Use: One-Proportion z-Test
+Use: Two-Proportion z-Test
 ```
 
-Example run for a one-proportion z-test:
+## Example Outputs
+
+Example z-test output:
 
 ```text
-Context: students who get at least 8 hours of sleep
-Successes x: 102
-Sample size n: 150
-Null proportion p0: 0.60
-Alt hypothesis?
-1) >
-2) <
-3) !=
-Choice: 3
-
-Alpha (ex: 0.05 or 5): 0.05
+Setup
+- Parameter: p = true proportion of students who get at least 8 hours of sleep
+- H0: p = 0.6000
+- Ha: p != 0.6000
 
 Values
 - p-hat = 102 / 150 = 0.6800
 - SE0 = sqrt((0.6000)(0.4000) / 150) = 0.0400
 - z = (0.6800 - 0.6000) / 0.0400 = 2.0000
-- p-value = 0.0455
+- Alt = !=
+- p-value = 0.0455 (normal)
+
+Conclusion
+Since p-value = 0.0455 < alpha = 0.0500, we reject H0.
 ```
 
-Additional practice prompts are available in `examples/sample_problems.txt`.
+Example t-test output:
 
-## Design Notes
+```text
+Values
+- d-bar = 4.5000
+- s_d = 6.2000
+- SE = 6.2000 / sqrt(18) = 1.4614
+- t = 4.5000 / 1.4614 = 3.0793
+- df = 17
+- Alt = >
+- p-value = 0.0034 (numerical t approx)
+- Plain math code has no exact t CDF.
+- This uses numerical integration.
+- An exact t routine can be added later.
+```
 
-The implementation is intentionally simple:
+## How to Run Locally
 
-- Only the standard `math` module is used
-- Functions are organized by procedure and task
-- Prompts stay short for future calculator adaptation
-- Numerical methods are implemented directly so the project stays self-contained
-- z-test p-values are computed with the normal model
-- t-test p-values are approximated numerically and paired with calculator instructions
+1. Install Python 3.
+2. Open a terminal in the project folder.
+3. Run:
 
-## Planned Improvements
+```bash
+python apinf.py
+```
+
+## How to Port to a Calculator
+
+This project was written to be portable to a TI-84 Python calculator later.
+
+Suggested porting steps:
+
+1. Keep the numeric menus and short prompts.
+2. Move long explanation text into shorter calculator-friendly labels.
+3. Keep the math helper functions separate from the menu/display code.
+4. Replace longer README-style wording with abbreviations for calculator screens.
+5. Test one procedure at a time after moving it to the calculator.
+
+The top of `apinf.py` also includes TI-84 porting notes for future refactoring.
+
+## How to Upload to GitHub
+
+If the project is local and not pushed yet:
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+If the repository already exists on GitHub, the usual flow is:
+
+```bash
+git add .
+git commit -m "Update AP Stats calculator"
+git push
+```
+
+## Future Work
 
 - Add a compact calculator-screen mode
 - Add direct raw-data entry for paired differences
 - Add support for more AP Statistics inference families
-- Add optional formula abbreviations for faster navigation
-- Expand the example problem set
-- Improve output formatting for study guides and screenshots
+- Add shorter text labels for calculator ports
+- Expand the sample problem set
+- Improve output formatting for study guides
 
-## License
+## Resume-Ready Project Description
 
-This project is released under the MIT License. See `LICENSE` for details.
+Built a Python command-line AP Statistics inference calculator that selects appropriate one-sample and two-sample procedures, computes test statistics and intervals, and generates context-based statistical conclusions using only the standard library.
+
+## Project Files
+
+- `apinf.py` - main application
+- `examples/sample_problems.txt` - sample AP Statistics-style prompts
+- `README.md` - project overview and usage
