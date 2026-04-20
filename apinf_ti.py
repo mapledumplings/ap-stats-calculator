@@ -1,12 +1,4 @@
-"""Compact TI-84 Plus CE Python version of the AP Stats calculator.
-
-TI notes:
-- Send this file to the calculator instead of the full desktop file.
-- Keep it in RAM.
-- Menus are numeric and text is shortened on purpose.
-- Two-sample t uses conservative df = min(n1-1, n2-1).
-- t p-values use numerical integration, not an exact built-in t CDF.
-"""
+"""Compact TI-84 Plus CE Python AP Stats calculator."""
 
 import math
 
@@ -14,7 +6,7 @@ import math
 def main():
     while True:
         title()
-        print("1) TREE")
+        print("1) MENU")
         print("2) EXIT")
         ch = input("CHOICE: ").strip()
         print()
@@ -28,7 +20,9 @@ def main():
                 print("NOT IN THIS APP")
                 print()
             else:
-                open_proc(proc)
+                print(nm(proc))
+                print()
+                run_proc(proc)
         elif ch == "2":
             print("BYE")
             break
@@ -38,9 +32,7 @@ def main():
 
 
 def title():
-    print("====================")
-    print("AP STATS TI HELPER")
-    print("====================")
+    print("AP STATS TI")
 
 
 def choose_proc():
@@ -73,7 +65,7 @@ def choose_proc():
 
 
 def choose_goal():
-    print("GOAL?")
+    print("GOAL")
     print("1) INT")
     print("2) TEST")
     ch = input("CHOICE: ").strip()
@@ -84,7 +76,7 @@ def choose_goal():
 
 
 def choose_dtype():
-    print("TYPE?")
+    print("TYPE")
     print("1) PROP")
     print("2) MEAN")
     ch = input("CHOICE: ").strip()
@@ -95,7 +87,7 @@ def choose_dtype():
 
 
 def choose_stype():
-    print("DATA?")
+    print("DATA")
     print("1) ONE")
     print("2) TWO IND")
     print("3) PAIRED")
@@ -108,18 +100,7 @@ def choose_stype():
     return "P"
 
 
-def open_proc(proc):
-    print(proc_name(proc))
-    print()
-    show_info(proc)
-    if ask_yes_no("COMPUTE? Y/N: "):
-        print()
-        run_proc(proc)
-    else:
-        print()
-
-
-def proc_name(proc):
+def nm(proc):
     if proc == "1PZTEST":
         return "1-PROP Z TEST"
     if proc == "1PZINT":
@@ -139,58 +120,6 @@ def proc_name(proc):
     if proc == "PTTEST":
         return "PAIRED T TEST"
     return "PAIRED T INT"
-
-
-def show_info(proc):
-    print("CHECKS")
-    if proc == "1PZTEST":
-        show_lines(["RAND", "10%", "LARGE CTS H0"])
-        print("FORM")
-        show_lines(["p", "H0:p=p0", "z=(ph-p0)/SE0"])
-    elif proc == "1PZINT":
-        show_lines(["RAND", "10%", "LARGE CTS"])
-        print("FORM")
-        show_lines(["p", "CI: ph +- z*SE"])
-    elif proc == "1TTEST":
-        show_lines(["RAND", "10%", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu", "H0:mu=mu0", "t=(xb-mu0)/SE"])
-    elif proc == "1TINT":
-        show_lines(["RAND", "10%", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu", "CI: xb +- t*SE"])
-    elif proc == "2PZTEST":
-        show_lines(["RAND BOTH", "INDEP", "10% BOTH", "POOL CTS"])
-        print("FORM")
-        show_lines(["p1-p2", "H0:p1-p2=0", "z=(ph1-ph2)/SE0"])
-    elif proc == "2PZINT":
-        show_lines(["RAND BOTH", "INDEP", "10% BOTH", "LARGE CTS"])
-        print("FORM")
-        show_lines(["p1-p2", "CI: (ph1-ph2)+-z*SE"])
-    elif proc == "2TTEST":
-        show_lines(["RAND BOTH", "INDEP", "10% BOTH", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu1-mu2", "H0:mu1-mu2=0", "t=(xb1-xb2)/SE"])
-    elif proc == "2TINT":
-        show_lines(["RAND BOTH", "INDEP", "10% BOTH", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu1-mu2", "CI: (xb1-xb2)+-t*SE"])
-    elif proc == "PTTEST":
-        show_lines(["RAND", "10%", "USE DIFFS", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu_d", "H0:mu_d=0", "t=dbar/SE"])
-    elif proc == "PTINT":
-        show_lines(["RAND", "10%", "USE DIFFS", "NORMAL/LARGE"])
-        print("FORM")
-        show_lines(["mu_d", "CI: dbar +- t*SE"])
-    print()
-
-
-def show_lines(items):
-    i = 0
-    while i < len(items):
-        print("- " + items[i])
-        i = i + 1
 
 
 def run_proc(proc):
@@ -233,13 +162,13 @@ def run_1pztest():
     z = (ph - p0) / se0
     pv = z_pv(z, tail)
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_1p_test(n, p0, pop)
-    print("SETUP")
-    print("- p = true prop of " + ctx)
+    sec("SETUP")
+    print("- p true prop of " + ctx)
     print("- H0: p = " + fmt(p0))
     print("- Ha: p " + tail + " " + fmt(p0))
-    print("VALS")
+    sec("VALS")
     print("- ph = " + fmt(ph))
     print("- SE0 = " + fmt(se0))
     print("- z = " + fmt(z))
@@ -265,18 +194,18 @@ def run_1pzint():
     lo = ph - me
     hi = ph + me
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_1p_int(n, ph, pop)
-    print("SETUP")
-    print("- p = true prop of " + ctx)
+    sec("SETUP")
+    print("- p true prop of " + ctx)
     print("- CI: ph +- z*SE")
-    print("VALS")
+    sec("VALS")
     print("- ph = " + fmt(ph))
     print("- z* = " + fmt(zc))
     print("- SE = " + fmt(se))
     print("- ME = " + fmt(me))
-    print("- INT = (" + fmt(lo) + ", " + fmt(hi) + ")")
-    print_conc("We are " + pct(conf) + " conf true prop of " + ctx + " is between " + fmt(lo) + " and " + fmt(hi) + ".")
+    print("- INT = " + iv(lo, hi))
+    print_conc(ci_conc(conf, "prop of " + ctx, lo, hi))
 
 
 def run_1ttest():
@@ -294,13 +223,13 @@ def run_1ttest():
     t = (xb - mu0) / se
     pv = t_pv(t, df, tail)
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_1m(n, pop, shape)
-    print("SETUP")
-    print("- mu = true mean of " + ctx)
+    sec("SETUP")
+    print("- mu true mean of " + ctx)
     print("- H0: mu = " + fmt(mu0))
     print("- Ha: mu " + tail + " " + fmt(mu0))
-    print("VALS")
+    sec("VALS")
     print("- SE = " + fmt(se))
     print("- t = " + fmt(t))
     print("- df = " + str(df))
@@ -326,18 +255,18 @@ def run_1tint():
     lo = xb - me
     hi = xb + me
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_1m(n, pop, shape)
-    print("SETUP")
-    print("- mu = true mean of " + ctx)
+    sec("SETUP")
+    print("- mu true mean of " + ctx)
     print("- CI: xbar +- t*SE")
-    print("VALS")
+    sec("VALS")
     print("- SE = " + fmt(se))
     print("- df = " + str(df))
     print("- t* = " + fmt(tc))
     print("- ME = " + fmt(me))
-    print("- INT = (" + fmt(lo) + ", " + fmt(hi) + ")")
-    print_conc("We are " + pct(conf) + " conf true mean of " + ctx + " is between " + fmt(lo) + " and " + fmt(hi) + ".")
+    print("- INT = " + iv(lo, hi))
+    print_conc(ci_conc(conf, "mean of " + ctx, lo, hi))
 
 
 def run_2pztest():
@@ -355,14 +284,14 @@ def run_2pztest():
     z = (ph1 - ph2) / se0
     pv = z_pv(z, tail)
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_2p_test(n1, n2, phc, pop1, pop2)
-    print("SETUP")
+    sec("SETUP")
     print("- p1-p2 true prop diff")
     print("- H0: p1-p2 = 0")
     print("- Ha: p1-p2 " + tail + " 0")
-    print("- normal approx")
-    print("VALS")
+    print("- norm approx")
+    sec("VALS")
     print("- ph1 = " + fmt(ph1))
     print("- ph2 = " + fmt(ph2))
     print("- phc = " + fmt(phc))
@@ -389,21 +318,21 @@ def run_2pzint():
     lo = diff - me
     hi = diff + me
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_2p_int(n1, n2, ph1, ph2, pop1, pop2)
-    print("SETUP")
+    sec("SETUP")
     print("- p1-p2 true prop diff")
     print("- CI: diff +- z*SE")
-    print("- normal approx")
-    print("VALS")
+    print("- norm approx")
+    sec("VALS")
     print("- ph1 = " + fmt(ph1))
     print("- ph2 = " + fmt(ph2))
     print("- diff = " + fmt(diff))
     print("- z* = " + fmt(zc))
     print("- SE = " + fmt(se))
     print("- ME = " + fmt(me))
-    print("- INT = (" + fmt(lo) + ", " + fmt(hi) + ")")
-    print_conc("We are " + pct(conf) + " conf true prop diff of " + g1 + " minus " + g2 + " is between " + fmt(lo) + " and " + fmt(hi) + ".")
+    print("- INT = " + iv(lo, hi))
+    print_conc(ci_conc(conf, "prop diff of " + g1 + " - " + g2, lo, hi))
 
 
 def run_2ttest():
@@ -422,13 +351,13 @@ def run_2ttest():
     df = cons_df(n1, n2)
     pv = t_pv(t, df, tail)
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_2m(n1, n2, pop1, pop2, sh1, sh2)
-    print("SETUP")
+    sec("SETUP")
     print("- mu1-mu2 true mean diff")
     print("- H0: mu1-mu2 = 0")
     print("- Ha: mu1-mu2 " + tail + " 0")
-    print("VALS")
+    sec("VALS")
     print("- xb1 = " + fmt(xb1))
     print("- s1 = " + fmt(s1))
     print("- n1 = " + str(n1))
@@ -463,23 +392,23 @@ def run_2tint():
     lo = diff - me
     hi = diff + me
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_2m(n1, n2, pop1, pop2, sh1, sh2)
-    print("SETUP")
+    sec("SETUP")
     print("- mu1-mu2 true mean diff")
     print("- CI: diff +- t*SE")
-    print("VALS")
+    sec("VALS")
     print("- diff = " + fmt(diff))
     print("- SE = " + fmt(se))
     print("- df = " + str(df))
     print("- t* = " + fmt(tc))
     print("- ME = " + fmt(me))
-    print("- INT = (" + fmt(lo) + ", " + fmt(hi) + ")")
-    print_conc("We are " + pct(conf) + " conf true mean diff of " + g1 + " minus " + g2 + " is between " + fmt(lo) + " and " + fmt(hi) + ".")
+    print("- INT = " + iv(lo, hi))
+    print_conc(ci_conc(conf, "mean diff of " + g1 + " - " + g2, lo, hi))
 
 
 def run_pttest():
-    ctx = get_text("DIFF CTX: ", "DIFF")
+    ctx = get_text("DIFF: ", "DIFF")
     dbar = get_num("DBAR: ")
     sd = get_pos_num("SD: ")
     n = get_n_t("N: ")
@@ -492,13 +421,13 @@ def run_pttest():
     t = dbar / se
     pv = t_pv(t, df, tail)
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_pm(n, pop, shape)
-    print("SETUP")
+    sec("SETUP")
     print("- mu_d true mean diff")
     print("- H0: mu_d = 0")
     print("- Ha: mu_d " + tail + " 0")
-    print("VALS")
+    sec("VALS")
     print("- dbar = " + fmt(dbar))
     print("- s_d = " + fmt(sd))
     print("- SE = " + fmt(se))
@@ -512,7 +441,7 @@ def run_pttest():
 
 
 def run_ptint():
-    ctx = get_text("DIFF CTX: ", "DIFF")
+    ctx = get_text("DIFF: ", "DIFF")
     dbar = get_num("DBAR: ")
     sd = get_pos_num("SD: ")
     n = get_n_t("N: ")
@@ -526,20 +455,20 @@ def run_ptint():
     lo = dbar - me
     hi = dbar + me
     print()
-    print("CHECKS")
+    sec("CHECKS")
     show_checks_pm(n, pop, shape)
-    print("SETUP")
+    sec("SETUP")
     print("- mu_d true mean diff")
     print("- CI: dbar +- t*SE")
-    print("VALS")
+    sec("VALS")
     print("- dbar = " + fmt(dbar))
     print("- s_d = " + fmt(sd))
     print("- SE = " + fmt(se))
     print("- df = " + str(df))
     print("- t* = " + fmt(tc))
     print("- ME = " + fmt(me))
-    print("- INT = (" + fmt(lo) + ", " + fmt(hi) + ")")
-    print_conc("We are " + pct(conf) + " conf true mean diff for " + ctx + " is between " + fmt(lo) + " and " + fmt(hi) + ".")
+    print("- INT = " + iv(lo, hi))
+    print_conc(ci_conc(conf, "mean diff for " + ctx, lo, hi))
 
 
 def show_checks_1p_test(n, p0, pop):
@@ -566,7 +495,7 @@ def show_checks_1m(n, pop, shape):
 
 
 def show_checks_2p_test(n1, n2, phc, pop1, pop2):
-    print("- RAND BOTH")
+    print("- RAND x2")
     print("- INDEP")
     check_10(pop1, n1, " G1")
     check_10(pop2, n2, " G2")
@@ -579,7 +508,7 @@ def show_checks_2p_test(n1, n2, phc, pop1, pop2):
 
 
 def show_checks_2p_int(n1, n2, ph1, ph2, pop1, pop2):
-    print("- RAND BOTH")
+    print("- RAND x2")
     print("- INDEP")
     check_10(pop1, n1, " G1")
     check_10(pop2, n2, " G2")
@@ -592,7 +521,7 @@ def show_checks_2p_int(n1, n2, ph1, ph2, pop1, pop2):
 
 
 def show_checks_2m(n1, n2, pop1, pop2, sh1, sh2):
-    print("- RAND BOTH")
+    print("- RAND x2")
     print("- INDEP")
     check_10(pop1, n1, " G1")
     check_10(pop2, n2, " G2")
@@ -630,24 +559,23 @@ def check_10(pop, n, suf):
 
 def show_pf(label, ok):
     if ok:
-        print("- " + label + ": PASS")
+        print("- " + label + ": OK")
     else:
-        print("- " + label + ": FAIL/CHECK")
+        print("- " + label + ": CHK")
 
 
 def test_conc(pv, alpha, pname, ctx, tail, is_diff, nullv):
     if pv < alpha:
-        d = "reject H0"
-        e = "convincing"
+        d = "Reject H0."
+        e = "Evidence"
         c = "<"
     else:
-        d = "fail to reject H0"
-        e = "not convincing"
+        d = "Fail to reject H0."
+        e = "Not enough evidence"
         c = ">"
     rel = tail_word(tail)
-    txt = "Since p-value = " + fmt(pv) + " " + c
-    txt = txt + " alpha = " + fmt(alpha) + ", we " + d + ". "
-    txt = txt + "There is " + e + " evidence that the true "
+    txt = "PV " + fmt(pv) + " " + c + " A " + fmt(alpha) + ". "
+    txt = txt + d + " " + e + " true "
     txt = txt + pname + " of " + ctx + " is " + rel + " "
     txt = txt + fmt(nullv) + "."
     return txt
@@ -665,6 +593,18 @@ def print_conc(text):
     print("CONC")
     print(text)
     print()
+
+
+def sec(label):
+    print(label)
+
+
+def iv(lo, hi):
+    return "(" + fmt(lo) + "," + fmt(hi) + ")"
+
+
+def ci_conc(conf, lab, lo, hi):
+    return pct(conf) + " CI: true " + lab + " in " + iv(lo, hi) + "."
 
 
 def get_text(prompt, default):
