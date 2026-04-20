@@ -1,6 +1,6 @@
 # ap-stats-calculator
 
-`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context. The repo now includes both a full desktop version and a compact TI-84 version.
+`ap-stats-calculator` is a menu-driven Python program for AP Statistics inference. It helps students identify the correct procedure, review the required checks and setup, compute the key values, and write a conclusion in context. The repo includes a full desktop version and smaller TI-84 Python versions split by topic to reduce calculator memory problems.
 
 ## Supported Procedures
 
@@ -21,8 +21,13 @@ The decision tree also distinguishes paired categorical data, which is not part 
 
 ## Which File to Use
 
-- `apinf.py` - full desktop version with more explanatory text
-- `apinf_ti.py` - compact TI-84 Plus CE Python version with shorter menus and lower memory use
+- `apinf.py` - full desktop version with the complete menu tree
+- `apinf_ti.py` - older all-in-one compact TI version
+- `apinf_prop_ti.py` - recommended TI file for proportion procedures
+- `apinf_mean_ti.py` - recommended TI file for one-sample and two-sample mean procedures
+- `apinf_paired_ti.py` - recommended TI file for paired t procedures
+
+If your TI-84 Python app shows `MemoryError` or `memory allocation failed`, use the split TI files instead of the all-in-one TI file.
 
 ## Demo Menu Flow
 
@@ -113,10 +118,19 @@ Recommended setup:
 1. Update the calculator to the latest CE Bundle / Python App release.
 2. Install [TI Connect CE](https://education.ti.com/html/webhelp/EG_TI84PlusCE/EN/Subsystems/EG_TIC_84CE_SW/Content/EG_84_TIConnect/M_IntroTIC-CE/TC_IntroToTIConnect.HTML) on your computer.
 3. Connect the calculator to your computer with USB.
-4. Send `apinf_ti.py` to the calculator using **Send to Calculators** in TI Connect CE.
+4. Send only the TI file you need using **Send to Calculators** in TI Connect CE:
+
+```text
+apinf_prop_ti.py    -> one-proportion and two-proportion z procedures
+apinf_mean_ti.py    -> one-mean and two-sample t procedures
+apinf_paired_ti.py  -> paired t-test and paired t-interval
+```
+
+You can still try `apinf_ti.py`, but the split files are the safer choice on the calculator.
 5. TI Connect CE will convert the `.py` file to a Python AppVar (`.8xv`) when it sends it to the calculator.
 6. Store the program in **RAM**, not Archive, because the Python App runs and edits Python AppVars from RAM.
-7. Open the **Python App** on the calculator and run the transferred program.
+7. Keep only the file you want to run in RAM when possible.
+8. Open the **Python App** on the calculator and run the transferred program.
 
 Important TI notes:
 
@@ -132,7 +146,7 @@ Why this code is calculator-friendly:
 3. Functions are kept small.
 4. The two-sample t procedures use a conservative integer `df`, which is easier to support on the calculator.
 5. The t-distribution helper avoids `math.gamma`, which makes TI porting safer.
-6. The compact TI file is much smaller than the full desktop file.
+6. The split TI files reduce runtime memory pressure by loading only one procedure family at a time.
 
 Useful TI references:
 
@@ -177,6 +191,9 @@ Built a Python command-line AP Statistics inference calculator that selects appr
 ## Project Files
 
 - `apinf.py` - main application
-- `apinf_ti.py` - compact TI-84 version
+- `apinf_ti.py` - compact all-in-one TI-84 version
+- `apinf_prop_ti.py` - TI-84 proportion procedures
+- `apinf_mean_ti.py` - TI-84 one-sample and two-sample mean procedures
+- `apinf_paired_ti.py` - TI-84 paired t procedures
 - `examples/sample_problems.txt` - sample AP Statistics-style prompts
 - `README.md` - project overview and usage
